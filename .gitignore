@@ -1,0 +1,10 @@
+/components/DateTime.js
+/components/Root.js
+/pg/components/Database.js
+/pg/components/QueryResult.js
+/pg/components/Table.js
+/pg/fetch.js
+/pg/index.js
+/pg/node.js
+/server.js
+/static/build

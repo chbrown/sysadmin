@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "commonjs",
+    "target": "ES6"
+  },
+  "files": [
+    "node_modules/declarations/body-parser/body-parser.d.ts",
+    "node_modules/declarations/cookie-parser/cookie-parser.d.ts",
+    "node_modules/declarations/express/express.d.ts",
+    "node_modules/declarations/moment/moment-node.d.ts",
+    "node_modules/declarations/node/node.d.ts",
+    "node_modules/declarations/pg/pg.d.ts",
+    "node_modules/declarations/react/react-dom.d.ts",
+    "node_modules/declarations/react/react.d.ts",
+    "node_modules/declarations/yargs/yargs.d.ts",
+    "components/DateTime.tsx",
+    "components/Root.tsx",
+    "pg/components/Database.tsx",
+    "pg/components/QueryResult.tsx",
+    "pg/components/Table.tsx",
+    "pg/fetch.ts",
+    "pg/index.ts",
+    "pg/node.ts",
+    "server.ts"
+  ]
+}
