@@ -5,7 +5,11 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var production = process.env.NODE_ENV == 'production';
 
 module.exports = {
-  entry: ['./static/site.less'], // 'webpack-hot-middleware/client',
+  entry: [
+    './static/app.tsx',
+    './static/site.less',
+    // 'webpack-hot-middleware/client',
+  ],
   output: {
     path: path.join(__dirname, 'static', 'build'),
     filename: 'bundle.js',
@@ -22,8 +26,9 @@ module.exports = {
     new webpack.NoErrorsPlugin(),
   ]),
   resolve: {
-    extensions: [
+    extensions: [ // default: ["", ".webpack.js", ".web.js", ".js"]
       '',
+      '.browser.ts',
       '.ts',
       '.tsx',
       '.js',

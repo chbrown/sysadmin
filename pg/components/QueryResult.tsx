@@ -1,9 +1,8 @@
 import * as React from 'react';
-import {PgCatalogPgDatabase} from '../index';
-import {Field, QueryResult} from '../node';
+import {PgCatalogPgDatabase, PgField, PgQueryResult} from '../index';
 import DateTime from '../../components/DateTime';
 
-const Cell = ({value, field}: {value: any, field: Field}) => {
+const Cell = ({value, field}: {value: any, field: PgField}) => {
   if (field.name === 'datname') {
     return <a href={`/pg/${value}/`}>{value}</a>;
   }
@@ -43,7 +42,12 @@ const Cell = ({value, field}: {value: any, field: Field}) => {
   return <span>{String(value)}</span>;
 };
 
-const QueryResultTable = ({fields, rows}: QueryResult<any>) => {
+// interface QueryResultTableProps {
+//   fields: PgField[];
+//   rows: any[];
+// }
+
+const QueryResultTable = ({fields, rows}: PgQueryResult<any>) => {
   if (rows.length === 0) {
     return <div><b>No results</b></div>;
   }
@@ -97,4 +101,21 @@ QueryResultTable['propTypes'] = {
   fields: React.PropTypes.array.isRequired,
   rows: React.PropTypes.array.isRequired,
 };
-export default QueryResultTable;
+
+/**
+Wrapper Component with shouldComponentUpdate until stateless functional
+components get smarter should-update heuristics.
+*/
+class QueryResultTableView extends React.Component<PgQueryResult<any>, {}> {
+  shouldComponentUpdate(nextProps) {
+    const fieldsChanged = nextProps.fields !== this.props.fields;
+    const rowsChanged = nextProps.rows !== this.props.rows;
+    return fieldsChanged || rowsChanged;
+  }
+  render() {
+    return <QueryResultTable {...this.props} />;
+  }
+  static propTypes = QueryResultTable['propTypes'];
+}
+
+export default QueryResultTableView;

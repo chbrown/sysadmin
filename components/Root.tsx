@@ -7,7 +7,6 @@ const Root = ({children}) => (
       <title>sysadmin</title>
       <link href="/static/img/favicon.ico" rel="icon" type="image/x-icon" />
       <link href="/static/build/site.css" rel="stylesheet" type="text/css" />
-      <script src="/static/build/bundle.js"></script>
     </head>
     <body>
       <header>
@@ -15,7 +14,8 @@ const Root = ({children}) => (
           <a href="/pg/">pg</a>
         </nav>
       </header>
-      {children}
+      <div id="app">{children}</div>
+      <script src="/static/build/bundle.js"></script>
     </body>
   </html>
 );

@@ -1,7 +1,5 @@
-import {join} from 'path';
-import * as express from 'express';
-import * as bodyParser from 'body-parser';
-import * as cookieParser from 'cookie-parser';
+import {parse as parseUrl} from 'url';
+import {IncomingMessage, ServerResponse, createServer} from 'http';
 import * as urlio from 'urlio';
 import {logger, Level} from 'loge';
 import * as yargs from 'yargs';
@@ -9,153 +7,228 @@ import {inspect} from 'util';
 
 import * as React from 'react';
 type ReactComponent<P> = React.ComponentClass<P> | React.StatelessComponent<P>;
+
 // DOMServer docs: https://facebook.github.io/react/docs/top-level-api.html
-import {renderToString} from 'react-dom/server';
+import {renderToString, renderToStaticMarkup} from 'react-dom/server';
 
-import api from './pg/node';
-
-class ServerError extends Error {
-  constructor(message, public statusCode = 400, public location?: string) {
-    super(message);
-  }
-}
-
-interface Context {
-  req: express.Request;
-  res: express.Response;
-}
-type PromiseCreator<I, O> = (input: I) => Promise<O>;
-interface Route {
-  url: string;
-  method: string;
-  description?: string;
-  handler: PromiseCreator<Context, any>;
-  component?: ReactComponent<any>;
-}
+import routes, {Route, ResponsePayload} from './routes';
 
 import Root from './components/Root';
-import Database from './pg/components/Database';
-// import Tables from './pg/components/Tables';
-import QueryResult from './pg/components/QueryResult';
 
-const routes: Route[] = [
-  {
-    url: '/pg/',
-    method: 'GET',
-    handler: ({req, res}: Context) => {
-      return api.databases();
-    },
-    component: QueryResult,
-  },
-  {
-    url: '/pg/:database/',
-    method: 'GET',
-    handler: ({req, res}: Context) => {
-      let {database} = req.params;
-      return api.tables({database}).then(({rows: tables}) => {
-        let table_names = tables.map(table => table.table_name);
-        return api.columns({database, tables: table_names}).then(({rows: columns}) => {
-          return {tables, columns};
-        });
-      });
-    },
-    component: Database,
-  },
-  {
-    url: '/pg/:database/:table',
-    method: 'GET',
-    handler: ({req, res}: Context) => {
-      let {database, table} = req.params;
-      return api.table({database, table, filters: req.query});
-    },
-    component: QueryResult,
-  },
-  {
-    url: '/',
-    method: 'GET',
-    description: 'Homepage',
-    handler: ({req, res}: Context) => {
-      return Promise.reject(new ServerError('Redirect to /pg/', 302, '/pg/'));
-    },
-  },
-];
+function renderReact(component: ReactComponent<any>, props: any): string {
+  // we have to render these separately since we only replace the component
+  // part once on the browser-side
+  const rootElement = React.createElement(Root, {children: '#yield#'});
+  const rootHtml = renderToStaticMarkup(rootElement);
+  const componentElement = React.createElement(component, props);
+  const componentHtml = renderToString(componentElement);
+  return '<!DOCTYPE html>' + rootHtml.replace('#yield#', componentHtml);
+}
 
 /**
-Take a list of nested components and return a ReactElement
+Middleware to add a `body: any` field to the request.
 */
-function reduceComponents(components: ReactComponent<any>[], props: any): React.ReactElement<any> {
-  let element: React.ReactElement<any> = null;
-  while (components.length > 0) {
-    let component = components.pop();
-    if (component !== undefined) {
-      element = React.createElement(component, Object.assign({children: element}, props));
-    }
-  }
-  return element;
-}
-function renderReact(components: ReactComponent<any>[], props: any): string {
-  const element = reduceComponents(components, props);
-  const html = renderToString(element);
-  return '<!DOCTYPE html>' + html;
+function addBody<Req extends IncomingMessage, Res extends ServerResponse>({req, res}: {req: Req, res: Res}):
+    Promise<{req: Req & {body: any}, res: Res}> {
+  return new Promise<{req: Req & {body: any}, res: Res}>((resolve, reject) => {
+    var chunks = [];
+    return req
+    .on('error', reject)
+    .on('data', chunk => chunks.push(chunk))
+    .on('end', () => {
+      // console.log(`Parsing "${chunks.join('')}"`);
+      let data = Buffer.concat(chunks);
+      let body = (data.length > 0) ? JSON.parse(<any>data) : undefined;
+      resolve({
+        req: Object.assign(req, {body}),
+        res,
+      });
+    });
+  });
 }
 
-// function adaptResponse(component: ReactComponent<any>, props: any, ): string {
+/**
+Middleware to add an `xhr: boolean` field to the request.
+
+Look at the request and set req.xhr = true iff:
+1. The request header `X-Requested-With` is "XMLHttpRequest", OR:
+2. The request path ends with ".json", OR:
+3. The request header `Accept` does not contain "text/html"
+
+req.xhr == true indicates that the response should be JSON.
+*/
+function addXhr<Req extends IncomingMessage, Res extends ServerResponse>({req, res}: {req: Req, res: Res}):
+    Promise<{req: Req & {xhr: boolean}, res: Res}> {
+  // TODO: use the pathname, not the url
+  let xhr = (req.headers['x-requested-with'] == 'XMLHttpRequest') ||
+            /\.json$/.test(req.url) ||
+            !/text\/html/.test(req.headers['accept']);
+  // if the second case is true, remove the ".json" extension
+  let url = req.url.replace(/\.json$/, '');
+  return Promise.resolve({
+    req: Object.assign(req, {xhr, url}),
+    res,
+  });
+}
+
+/**
+Selected properties of a fully (parseQueryString=true) parsed NodeJS Url object.
+*/
+interface Url {
+  /** The request protocol, lowercased. */
+  protocol: string;
+  /** The authentication information portion of a URL. */
+  auth: string;
+  /** Just the lowercased hostname portion of the host. */
+  hostname: string;
+  /** The port number portion of the host. (Yes, it's a string.) */
+  port: string;
+  /** The path section of the URL, that comes after the host and before the
+  query, including the initial slash if present. No decoding is performed. */
+  pathname: string;
+  /** A querystring-parsed object. */
+  query: any;
+  /**  The 'fragment' portion of the URL including the pound-sign. */
+  hash: string;
+}
+
+/**
+Add a subset of the parsed NodeJS.Url object to the request.
+*/
+function addUrlObj<Req extends IncomingMessage, Res extends ServerResponse>({req, res}: {req: Req, res: Res}):
+    Promise<{req: Req & Url, res: Res}> {
+  let {protocol, auth, hostname, port, pathname, query, hash} = parseUrl(req.url, true);
+  return Promise.resolve({
+    req: Object.assign(req, {protocol, auth, hostname, port, pathname, query, hash}),
+    res,
+  });
+}
+
+/**
+Less generic middleware / handler, but useful here.
+
+Uggh, TypeScript can't handle this. See addRoute below, which has the correct type inference.
+*/
+// function createRouter<Req extends (IncomingMessage & {pathname: string}), Res extends ServerResponse>(routes: urlio.Route[]) {
+//   return ({req, res}: {req: Req, res: Res}): Promise<{req: Req & {route: urlio.Route, params: any}, res: Res}> => {
+//     const route = urlio.parse(routes, {url: req.pathname, method: req.method});
+//     return Promise.resolve({
+//       req: Object.assign(req, {route, params: (route !== undefined) ? route.params : {}}),
+//       res,
+//     });
+//   };
+// }
+/**
+Uses `routes` global.
+*/
+function addRoute<Req extends IncomingMessage & {pathname: string}, Res extends ServerResponse, Rou extends Route & {params: any}>({req, res}: {req: Req, res: Res}): Promise<{req: Req & {route: Rou, params: any}, res: Res}> {
+  // logger.info(`matching route for url=${pathname} method={method}`);
+  const route = urlio.parse(routes, {url: req.pathname, method: req.method});
+  return Promise.resolve({
+    req: Object.assign(req, {route, params: (route !== undefined) ? route.params : {}}),
+    res,
+  });
+}
+
+
+
+/**
+respondWith takes a response value and responds appropriately:
+1. If value is a ServerError,
+2. If !req.xhr and there's a component, render the component using the response value as its props
+3. If req.xhr, add an "application/json" header and stringify the response value
+*/
+// function respondWith<T>(req: IncomingMessage, res: ServerResponse, payload: ResponsePayload<T>, callback: () => void) {
+//   if (ServerError.isServerError(payload)) {
+    // respondWith(req, res, payload);
 // }
 
-function mainHandler(req: express.Request, res: express.Response): Promise<string> {
-  const {method} = req;
-  let url = req.path;
-  let matchingRoute = urlio.parse(routes, {url: url, method: method});
-  // logger.info(`matched route`, matchingRoute);
-  if (matchingRoute === undefined) {
-    throw new ServerError(`No route found for "${url}"`, 404);
-  }
-  req.params = matchingRoute.params;
-  // logger.info(`handling method=${method} url=${url} params=${inspect(req.params)} query=${inspect(req.query)}`);
-  return matchingRoute.handler({req, res}).then(responseValue => {
-    // logger.info(`rendering props=${inspect(responseValue)}`);
-    let ajax = !/text\/html/.test(req.headers['accept']);
-    if (/\.json$/.test(url)) {
-      ajax = true;
-      url = url.slice(0, -5);
+function httpHandler(req: IncomingMessage, res: ServerResponse): void {
+  // process middleware
+  Promise.resolve({req, res})
+  .then(addBody)
+  .then(addXhr)
+  .then(addUrlObj)
+  .then(addRoute)
+  .then(({req, res}) => {
+    // handle processed request
+    logger.info(`handling params=${inspect(req.params)} query=${inspect(req.query)}`);
+
+    if (req.route === undefined) {
+      let message = `No route found for "${req.pathname}"`;
+      let payload: ResponsePayload<any> = {props: {message}, statusCode: 404};
+      return Promise.resolve({req, res, payload});
     }
-    if (ajax) {
-      return JSON.stringify(responseValue);
+
+    return req.route.handler({req: req})
+    .catch(reason => {
+      // last-ditch effort to recover from errors while still formatting them adaptively
+      let props = Object.assign({message: reason.message}, reason);
+      let payload: ResponsePayload<any> = {props, statusCode: 400};
+      return payload;
+    }).then(payload => {
+      return {req, res, payload};
+    })
+  })
+  .then(({req, res, payload}) => {
+    // logger.info(`rendering payload=${inspect(payload)}`);
+
+    if (payload.redirect) {
+      res.statusCode = payload.statusCode || 302;
+      res.setHeader('Location', payload.redirect);
+      res.end();
+    }
+    else if (payload.stream) {
+      res.statusCode = payload.statusCode || 200;
+      payload.stream
+      .on('error', (error) => {
+        logger.error('stream error', error);
+        res.statusCode = 404; // maybe 500?
+        res.end(error.toString());
+      });
+      payload.stream.pipe(res);
+    }
+    else if (req.xhr) {
+      res.statusCode = payload.statusCode || 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(payload.props));
+    }
+    else if (payload.component) {
+      res.statusCode = payload.statusCode || 200;
+      res.end(renderReact(payload.component, payload.props));
     }
     else {
-      return renderReact([Root, matchingRoute.component], responseValue);
+      throw new Error(`Cannot format payload: ${inspect(payload)}`);
     }
+  })
+  .catch(reason => {
+    // oops, complete fail, handle any/all errors that occurred in the rendering step here.
+    logger.info('handler failure', reason);
+    res.statusCode = 500;
+    res.end(reason.toString());
   });
 }
-
-const app = express();
-app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
-app.use('/static', express.static(join(__dirname, 'static')));
-app.all('*', (req, res, next) => {
-  mainHandler(req, res).then(value => {
-    // logger.info('handler success:', value);
-    res.end(value.toString());
-  }).catch(reason => {
-    logger.info('handler failure:', reason);
-    if (reason.location) {
-      return res.redirect(reason.statusCode, reason.location);
-    }
-    // return renderReact([Root, matchingRoute.component], responseValue);
-    res.status(reason.statusCode || 500).end(reason.toString());
-  });
-});
 
 const defaultPort = 7972;
 const defaultHostname = '127.0.0.1';
-
+/**
+Create the server and start it listening on the given port and hostname.
+Time all requests and send them directly over to httpHandler.
+*/
 export function start(port: number = defaultPort, hostname: string = defaultHostname) {
-  app.listen(port, hostname, () => {
-    console.log(`server listening on http://${hostname}:${port}`);
+  const server = createServer((req, res) => {
+    var started = Date.now();
+    res.on('finish', () => {
+      logger.info('%s %s [%d ms]', req.method, req.url, Date.now() - started);
+    });
+    httpHandler(req, res);
   });
+  server.on('listening', () => {
+    var address = server.address();
+    console.log(`server listening on http://${address.address}:${address.port}`);
+  });
+  server.listen(port, hostname);
 }
-
 export function main() {
   var argvparser = yargs
     .usage('Usage: sysadmin')
@@ -186,7 +259,7 @@ export function main() {
     console.log(require('./package').version);
   }
   else {
-    start(argv.port, argv.hostname);
+    start(parseInt(argv.port, 10), argv.hostname);
   }
 }
 

@@ -1,10 +1,15 @@
 /components/DateTime.js
 /components/Root.js
 /pg/components/Database.js
+/pg/components/Repl.js
 /pg/components/QueryResult.js
 /pg/components/Table.js
-/pg/fetch.js
+/pg/api.browser.js
+/pg/api.js
 /pg/index.js
-/pg/node.js
+/static/app.js
+/api.browser.js
+/api.js
+/routes.js
 /server.js
 /static/build

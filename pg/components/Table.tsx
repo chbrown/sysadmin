@@ -1,7 +1,19 @@
 import * as React from 'react';
-import {InformationSchemaTable, InformationSchemaColumn} from '../index';
+import {InformationSchemaTable, InformationSchemaColumn, InformationSchemaReferentialConstraint} from '../index';
 
-const Table = ({table, columns}: {table: InformationSchemaTable, columns: InformationSchemaColumn[]}) => {
+export interface Reference {
+  table_name: string;
+  column_name: string;
+  unique_table_name: string;
+  unique_column_name: string;
+}
+
+interface TableProps {
+  table: InformationSchemaTable;
+  columns: InformationSchemaColumn[];
+  references: Reference[];
+}
+const Table = ({table, columns, references}: TableProps) => {
   return (
     <div className="pg-table">
       <div className="name">
@@ -14,6 +26,7 @@ const Table = ({table, columns}: {table: InformationSchemaTable, columns: Inform
             <th>type</th>
             <th>null / not null</th>
             <th>default</th>
+            <th>refs</th>
           </tr>
         </thead>
         <tbody>
@@ -23,15 +36,22 @@ const Table = ({table, columns}: {table: InformationSchemaTable, columns: Inform
               <td>{column.data_type}</td>
               <td>{(column.is_nullable === 'YES') ? 'NULL' : 'NOT NULL'}</td>
               <td>{/^nextval/.test(column.column_default) ? 'AUTOINC' : column.column_default}</td>
+              <td>
+                {references.filter(reference => reference.column_name == column.column_name).map((reference, i) =>
+                  <div key={i}>→ {reference.unique_table_name}({reference.unique_column_name})</div>
+                )}
+              </td>
             </tr>
           )}
         </tbody>
       </table>
+
     </div>
   );
 };
 Table['propTypes'] = {
   table: React.PropTypes.any.isRequired,
   columns: React.PropTypes.array.isRequired,
+  constraints: React.PropTypes.array.isRequired,
 };
 export default Table;
