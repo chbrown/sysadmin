@@ -1,17 +1,16 @@
-import {parse as parseUrl} from 'url';
 import {IncomingMessage, ServerResponse, createServer} from 'http';
 import * as urlio from 'urlio';
 import {logger, Level} from 'loge';
 import * as yargs from 'yargs';
 import {inspect} from 'util';
+import {addBody, addXhr, addUrlObj} from 'http-extend';
 
 import * as React from 'react';
-type ReactComponent<P> = React.ComponentClass<P> | React.StatelessComponent<P>;
 
 // DOMServer docs: https://facebook.github.io/react/docs/top-level-api.html
 import {renderToString, renderToStaticMarkup} from 'react-dom/server';
 
-import routes, {Route, ResponsePayload} from './routes';
+import routes, {Route, ResponsePayload, ReactComponent} from './routes';
 
 import Root from './components/Root';
 
@@ -23,85 +22,6 @@ function renderReact(component: ReactComponent<any>, props: any): string {
   const componentElement = React.createElement(component, props);
   const componentHtml = renderToString(componentElement);
   return '<!DOCTYPE html>' + rootHtml.replace('#yield#', componentHtml);
-}
-
-/**
-Middleware to add a `body: any` field to the request.
-*/
-function addBody<Req extends IncomingMessage, Res extends ServerResponse>({req, res}: {req: Req, res: Res}):
-    Promise<{req: Req & {body: any}, res: Res}> {
-  return new Promise<{req: Req & {body: any}, res: Res}>((resolve, reject) => {
-    var chunks = [];
-    return req
-    .on('error', reject)
-    .on('data', chunk => chunks.push(chunk))
-    .on('end', () => {
-      // console.log(`Parsing "${chunks.join('')}"`);
-      let data = Buffer.concat(chunks);
-      let body = (data.length > 0) ? JSON.parse(<any>data) : undefined;
-      resolve({
-        req: Object.assign(req, {body}),
-        res,
-      });
-    });
-  });
-}
-
-/**
-Middleware to add an `xhr: boolean` field to the request.
-
-Look at the request and set req.xhr = true iff:
-1. The request header `X-Requested-With` is "XMLHttpRequest", OR:
-2. The request path ends with ".json", OR:
-3. The request header `Accept` does not contain "text/html"
-
-req.xhr == true indicates that the response should be JSON.
-*/
-function addXhr<Req extends IncomingMessage, Res extends ServerResponse>({req, res}: {req: Req, res: Res}):
-    Promise<{req: Req & {xhr: boolean}, res: Res}> {
-  // TODO: use the pathname, not the url
-  let xhr = (req.headers['x-requested-with'] == 'XMLHttpRequest') ||
-            /\.json$/.test(req.url) ||
-            !/text\/html/.test(req.headers['accept']);
-  // if the second case is true, remove the ".json" extension
-  let url = req.url.replace(/\.json$/, '');
-  return Promise.resolve({
-    req: Object.assign(req, {xhr, url}),
-    res,
-  });
-}
-
-/**
-Selected properties of a fully (parseQueryString=true) parsed NodeJS Url object.
-*/
-interface Url {
-  /** The request protocol, lowercased. */
-  protocol: string;
-  /** The authentication information portion of a URL. */
-  auth: string;
-  /** Just the lowercased hostname portion of the host. */
-  hostname: string;
-  /** The port number portion of the host. (Yes, it's a string.) */
-  port: string;
-  /** The path section of the URL, that comes after the host and before the
-  query, including the initial slash if present. No decoding is performed. */
-  pathname: string;
-  /** A querystring-parsed object. */
-  query: any;
-  /**  The 'fragment' portion of the URL including the pound-sign. */
-  hash: string;
-}
-
-/**
-Add a subset of the parsed NodeJS.Url object to the request.
-*/
-function addUrlObj<Req extends IncomingMessage, Res extends ServerResponse>({req, res}: {req: Req, res: Res}):
-    Promise<{req: Req & Url, res: Res}> {
-  let {protocol, auth, hostname, port, pathname, query, hash} = parseUrl(req.url, true);
-  return Promise.resolve({
-    req: Object.assign(req, {protocol, auth, hostname, port, pathname, query, hash}),
-    res,
-  });
 }
 
 /**
@@ -121,16 +41,11 @@ Uggh, TypeScript can't handle this. See addRoute below, which has the correct ty
 /**
 Uses `routes` global.
 */
-function addRoute<Req extends IncomingMessage & {pathname: string}, Res extends ServerResponse, Rou extends Route & {params: any}>({req, res}: {req: Req, res: Res}): Promise<{req: Req & {route: Rou, params: any}, res: Res}> {
+function addRoute<Req extends IncomingMessage & {pathname: string}>(req: Req): Req & {route: Route, params: any} {
   // logger.info(`matching route for url=${pathname} method={method}`);
   const route = urlio.parse(routes, {url: req.pathname, method: req.method});
-  return Promise.resolve({
-    req: Object.assign(req, {route, params: (route !== undefined) ? route.params : {}}),
-    res,
-  });
+  return Object.assign(req, {route, params: (route !== undefined) ? route.params : {}});
 }
-
-
 
 /**
 respondWith takes a response value and responds appropriately:
@@ -145,33 +60,34 @@ respondWith takes a response value and responds appropriately:
 
 function httpHandler(req: IncomingMessage, res: ServerResponse): void {
   // process middleware
-  Promise.resolve({req, res})
-  .then(addBody)
-  .then(addXhr)
-  .then(addUrlObj)
-  .then(addRoute)
-  .then(({req, res}) => {
+  Promise.resolve(req).then(addBody).then(addXhr).then(addUrlObj).then(addRoute)
+  .then(req => {
     // handle processed request
     logger.info(`handling params=${inspect(req.params)} query=${inspect(req.query)}`);
 
     if (req.route === undefined) {
       let message = `No route found for "${req.pathname}"`;
       let payload: ResponsePayload<any> = {props: {message}, statusCode: 404};
-      return Promise.resolve({req, res, payload});
+      return {req, payload};
     }
 
-    return req.route.handler({req: req})
+    // logger.info(`running handler=${inspect(req)}`);
+    return req.route.handler({req})
     .catch(reason => {
       // last-ditch effort to recover from errors while still formatting them adaptively
       let props = Object.assign({message: reason.message}, reason);
       let payload: ResponsePayload<any> = {props, statusCode: 400};
       return payload;
     }).then(payload => {
-      return {req, res, payload};
+      return {req, payload};
     })
   })
-  .then(({req, res, payload}) => {
+  .then(({req, payload}) => {
     // logger.info(`rendering payload=${inspect(payload)}`);
+
+    if (payload.headers) {
+      payload.headers.forEach(([name, value]) => res.setHeader(name, value));
+    }
 
     if (payload.redirect) {
       res.statusCode = payload.statusCode || 302;

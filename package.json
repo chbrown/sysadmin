@@ -17,6 +17,7 @@
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "dependencies": {
     "history": "*",
+    "http-extend": "*",
     "loge": "*",
     "moment": "*",
     "pg": "*",
