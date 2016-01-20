@@ -1,5 +1,7 @@
 # sysadmin
 
+[![npm version](https://badge.fury.io/js/sysadmin.svg)](https://www.npmjs.com/package/sysadmin)
+
 System Administration Web UI
 
 
