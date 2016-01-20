@@ -1,6 +1,15 @@
 import * as React from 'react';
 import {PgCatalogPgDatabase, PgField, PgQueryResult} from '../index';
-import DateTime from '../../components/DateTime';
+const moment = require('moment');
+
+const type_groups = {
+  // DATE
+  date: new Set([1082]),
+  // TIME
+  time: new Set([1083]),
+  // TIMESTAMP, and TIMESTAMPTZ
+  datetime: new Set([1114, 1184]),
+}
 
 const Cell = ({value, field}: {value: any, field: PgField}) => {
   if (field.name === 'datname') {
@@ -23,9 +32,15 @@ const Cell = ({value, field}: {value: any, field: PgField}) => {
     // return <span className="array">{children}</span>;
     return <span className="array">{JSON.stringify(value)}</span>;
   }
-  else if (value instanceof Date) {
-    // TODO: also check for stringified dates
-    return <DateTime date={value} />;
+  else if (type_groups.date.has(field.dataTypeID)) {
+    // moment parsing and formatting is vacuous in this case
+    return <time dateTime={value}>{moment(value).format('YYYY-MM-DD')}</time>;
+  }
+  else if (type_groups.time.has(field.dataTypeID)) {
+    return <time dateTime={value}>{value}</time>;
+  }
+  else if (type_groups.datetime.has(field.dataTypeID)) {
+    return <time dateTime={value}>{moment(value).format('YYYY-MM-DD h:mm A')}</time>;
   }
   else if (typeof value === 'object') {
     return <span className="object">{JSON.stringify(value)}</span>;
@@ -42,12 +57,11 @@ const Cell = ({value, field}: {value: any, field: PgField}) => {
   return <span>{String(value)}</span>;
 };
 
-// interface QueryResultTableProps {
-//   fields: PgField[];
-//   rows: any[];
-// }
+interface QueryResultProps extends PgQueryResult<any> {
+  sql?: string;
+}
 
-const QueryResultTable = ({fields, rows}: PgQueryResult<any>) => {
+const QueryResultTable = ({fields, rows, sql}: QueryResultProps) => {
   if (rows.length === 0) {
     return <div><b>No results</b></div>;
   }
@@ -62,12 +76,15 @@ const QueryResultTable = ({fields, rows}: PgQueryResult<any>) => {
   const uninformativeFields = extendedFields.filter(field => !field.informative);
   return (
     <div>
-      <h3 className="hpad">Table ({rows.length} rows)</h3>
+      <div className="hpad flex-fill">
+        <h3>Table ({rows.length} rows)</h3>
+        {sql && <div><a href={`repl/?sql=${sql}`}>repl</a></div>}
+      </div>
       <table className="fill padded lined striped">
         <thead>
           <tr>
             {informativeFields.map(field =>
-              <th key={field.columnID} title={`${field.dataTypeID}`}>{field.name}</th>
+              <th key={field.name} title={`${field.dataTypeID}`}>{field.name}</th>
             )}
           </tr>
         </thead>
@@ -75,7 +92,7 @@ const QueryResultTable = ({fields, rows}: PgQueryResult<any>) => {
           {rows.map((row, i) =>
             <tr key={i}>
               {informativeFields.map(field =>
-                <td key={field.columnID}><Cell value={row[field.name]} field={field} /></td>
+                <td key={field.name}><Cell value={row[field.name]} field={field} /></td>
               )}
             </tr>
           )}
@@ -87,26 +104,54 @@ const QueryResultTable = ({fields, rows}: PgQueryResult<any>) => {
           {uninformativeFields.map(field => {
             let prototypeValue = rows[0][field.name];
             return (
-              <li key={field.columnID} title={`${field.dataTypeID}`}>
+              <li key={field.name} title={`${field.dataTypeID}`}>
                 <b>{field.name}</b>: <Cell value={prototypeValue} field={field} />
               </li>
             );
           })}
         </ul>
       </div>}
+      <h3 className="hpad">All fields</h3>
+      <table className="fill padded lined striped">
+        <thead>
+          <tr>
+            <th>name</th>
+            <th>tableID</th>
+            <th>columnID</th>
+            <th>dataTypeID</th>
+            <th>dataTypeSize</th>
+            <th>dataTypeModifier</th>
+            <th>format</th>
+          </tr>
+        </thead>
+        <tbody>
+          {fields.map(({name, tableID, columnID, dataTypeID, dataTypeSize, dataTypeModifier, format}) =>
+            <tr key={name}>
+              <td>{name}</td>
+              <td>{tableID}</td>
+              <td>{columnID}</td>
+              <td>{dataTypeID}</td>
+              <td>{dataTypeSize}</td>
+              <td>{dataTypeModifier}</td>
+              <td>{format}</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
 QueryResultTable['propTypes'] = {
   fields: React.PropTypes.array.isRequired,
   rows: React.PropTypes.array.isRequired,
+  sql: React.PropTypes.string,
 };
 
 /**
 Wrapper Component with shouldComponentUpdate until stateless functional
 components get smarter should-update heuristics.
 */
-class QueryResultTableView extends React.Component<PgQueryResult<any>, {}> {
+class QueryResultTableView extends React.Component<QueryResultProps, {}> {
   shouldComponentUpdate(nextProps) {
     const fieldsChanged = nextProps.fields !== this.props.fields;
     const rowsChanged = nextProps.rows !== this.props.rows;

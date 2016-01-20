@@ -196,6 +196,7 @@ export interface PgField {
   name: string;
   tableID: number;
   columnID: number;
+  /** Corresponds to the oid of table pg_catalog.pg_type */
   dataTypeID: number;
   dataTypeSize: number;
   dataTypeModifier: number;
@@ -219,19 +220,4 @@ export interface PgConnectionConfig {
   port?: number;
   host?: string;
   ssl?: boolean;
-}
-
-export interface API {
-  databases(params?: PgConnectionConfig):
-    Promise<PgQueryResult<PgCatalogPgDatabase>>;
-  tables(params: PgConnectionConfig & {database: string}):
-    Promise<PgQueryResult<InformationSchemaTable>>;
-  table(params: PgConnectionConfig & {database: string;
-                                      table: string;
-                                      filters?: {[index: string]: string | string[]}}):
-    Promise<PgQueryResult<{[index: string]: string}>>;
-  columns(params: PgConnectionConfig & {database: string; tables: string[]}):
-    Promise<PgQueryResult<InformationSchemaColumn>>;
-  query<T>(params: PgConnectionConfig & {sql: string; variables: any[]}):
-    Promise<PgQueryResult<T>>;
 }

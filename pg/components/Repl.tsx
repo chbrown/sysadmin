@@ -1,52 +1,58 @@
 import * as React from 'react';
+
 import {PgCatalogPgDatabase, PgQueryResult} from '../index';
-import DateTime from '../../components/DateTime';
+import {fetchJSON} from '../../util';
 import QueryResult from './QueryResult';
 
-// TODO: fix this hack
-// let storage = (typeof localStorage === 'undefined') ? {} : localStorage;
-
-function checkStatus<R extends Response>(response: R): Promise<R> {
-  if (response.status < 200 || response.status > 299) {
-    let error = new Error(`HTTP ${response.status}`);
-    error['response'] = response;
-    return Promise.reject<R>(error);
-  }
-  return Promise.resolve(response);
+interface ReplProps {
+  database: string;
+  sql?: string;
+  variables?: string;
 }
-
 // Component's state (S) type should have all optional fields; the setState
 // definition requires a full state, which is overrestrictive, but all-optional
 // fields is an easy workaround.
-class Repl extends React.Component<{}, {sql?: string, variables?: string, queryResult?: PgQueryResult<any>, errorMessage?: any}> {
+interface ReplState {
+  queryResult?: PgQueryResult<any>;
+  errorMessage?: any;
+}
+class Repl extends React.Component<ReplProps, ReplState> {
+  _pushHistory_timeout: any;
   // uggh, can't set state at the class level since then it overrides the S type parameter
-  constructor() {
-    super();
-    this.state = {sql: '', variables: '[]'};
+  constructor(props) {
+    super(props);
+    this.state = {};
   }
-  /** only gets invoked on the client */
-  componentDidMount() {
-    this.setState({
-      sql: localStorage['sql'] || '',
-      variables: localStorage['variables'] || '[]',
-    });
+  pushHistory(sql: string, variables: string) {
+    // debounce at trailing end of 100ms
+    if (this._pushHistory_timeout) {
+      clearTimeout(this._pushHistory_timeout);
+    }
+    this._pushHistory_timeout = setTimeout(() => {
+      const {history}: {history: HistoryModule.History} = this.context as any;
+      const newLocation = `/pg/${this.props.database}/repl/?sql=${sql}&variables=${variables}`;
+      console.log('push newLocation', newLocation);
+      history.push(newLocation);
+      this._pushHistory_timeout = undefined;
+    }, 100);
   }
   onInputChange(key, ev) {
     let value = ev.target.value;
-    this.setState({[key]: value});
-    localStorage[key] = value;
+    const {sql, variables} = Object.assign({}, this.props, {[key]: value});
+    // persist to URL
+    this.pushHistory(sql, variables);
+  }
+  onKeyDown(ev: React.KeyboardEvent) {
+    if (ev.metaKey && ev.keyCode == 13) {
+      this.onSubmit(ev);
+    }
   }
   onSubmit(ev) {
     ev.preventDefault(); // prevent form submission
-    let {sql} = this.state;
-    let variables = JSON.parse(this.state.variables);
-    fetch('../query', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({sql, variables}),
-    })
-    .then(response => response.json().then(content => Object.assign(response, {content})))
-    .then(checkStatus)
+    this.setState({errorMessage: undefined});
+    let {sql} = this.props;
+    let variables = JSON.parse(this.props.variables);
+    fetchJSON('../query', {method: 'POST', body: {sql, variables}})
     .then(response => {
       this.setState({errorMessage: undefined, queryResult: response.content});
     })
@@ -59,27 +65,38 @@ class Repl extends React.Component<{}, {sql?: string, variables?: string, queryR
     });
   }
   render() {
+    // Using defaultValue instead of value, below, since roundtrip through URL
+    // spans across different event loop frames, which breaks UX
+    const {sql, variables} = this.props;
     return (
       <div>
         <h3 className="hpad">Repl</h3>
-        <form onSubmit={this.onSubmit.bind(this)} className="hpad">
+        <form onSubmit={this.onSubmit.bind(this)} className="hpad" onKeyDown={this.onKeyDown.bind(this)}>
           <label>
             <div><b>SQL</b></div>
             <textarea style={{minHeight: '100px'}}
-              value={this.state.sql} onChange={this.onInputChange.bind(this, 'sql')} />
+              defaultValue={sql} onChange={this.onInputChange.bind(this, 'sql')} />
           </label>
           <label>
             <div><b>Variables</b></div>
-            <textarea value={this.state.variables} onChange={this.onInputChange.bind(this, 'variables')} />
+            <textarea defaultValue={variables} onChange={this.onInputChange.bind(this, 'variables')} />
           </label>
-          <div><button>Submit</button></div>
+          <div><button>Submit (⌘⏎)</button></div>
         </form>
         {(this.state.queryResult !== undefined) && <QueryResult {...this.state.queryResult} />}
         {(this.state.errorMessage !== undefined) &&
-          <div><h3 className="hpad">Error</h3><p>{this.state.errorMessage}</p></div>
+          <div className="hpad"><h3>Error</h3><p>{this.state.errorMessage}</p></div>
         }
       </div>
     );
+  }
+  static contextTypes = {
+    history: React.PropTypes.object,
+    location: React.PropTypes.object,
+  }
+  static defaultProps = {
+    sql: '',
+    variables: '[]',
   }
 }
 export default Repl;

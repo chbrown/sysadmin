@@ -16,8 +16,9 @@ interface TableProps {
 const Table = ({table, columns, references}: TableProps) => {
   return (
     <div className="pg-table">
-      <div className="name">
-        <a href={table.table_name}>{table.table_name}</a>
+      <div className="flex-fill" style={{padding: '3px 5px 3px 5px'}}>
+        <a href={table.table_name} title="table_name"><b>{table.table_name}</b></a>
+        <span title="table_type">{table.table_type}</span>
       </div>
       <table className="lined striped">
         <thead>
@@ -32,10 +33,10 @@ const Table = ({table, columns, references}: TableProps) => {
         <tbody>
           {columns.map(column =>
             <tr key={column.column_name}>
-              <td>{column.column_name}</td>
-              <td>{column.data_type}</td>
-              <td>{(column.is_nullable === 'YES') ? 'NULL' : 'NOT NULL'}</td>
-              <td>{/^nextval/.test(column.column_default) ? 'AUTOINC' : column.column_default}</td>
+              <td title="column_name">{column.column_name}</td>
+              <td title="data_type">{column.data_type}</td>
+              <td title="is_nullable">{(column.is_nullable === 'YES') ? 'NULL' : 'NOT NULL'}</td>
+              <td title="column_default">{/^nextval/.test(column.column_default) ? 'AUTOINC' : column.column_default}</td>
               <td>
                 {references.filter(reference => reference.column_name == column.column_name).map((reference, i) =>
                   <div key={i}>→ {reference.unique_table_name}({reference.unique_column_name})</div>

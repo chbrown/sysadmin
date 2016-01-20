@@ -1,5 +1,15 @@
+import * as pg from 'pg';
 import {connect} from 'pg';
 import {inspect} from 'util';
+
+const identity: <T>(t: T) => T = (value) => value;
+// disable automatic parsing (https://github.com/brianc/node-pg-types/blob/v1.10.0/lib/textParsers.js)
+pg['types'].setTypeParser(1082, identity); // DATE
+pg['types'].setTypeParser(1114, identity); // TIMESTAMP
+pg['types'].setTypeParser(1184, identity); // TIMESTAMPTZ
+pg['types'].setTypeParser(1115, identity); // TIMESTAMP[]
+pg['types'].setTypeParser(1182, identity); // DATE[]
+pg['types'].setTypeParser(1185, identity); // TIMESTAMPTZ[]
 
 import {PgConnectionConfig, PgQueryResult, PgCatalogPgDatabase,
   InformationSchemaTable, InformationSchemaColumn,
@@ -38,7 +48,8 @@ const api = {
   */
   databases(params: PgConnectionConfig = {}) {
     let config = Object.assign({}, defaultClientConfig, params);
-    return query<PgCatalogPgDatabase>(config, 'SELECT * FROM pg_catalog.pg_database ORDER BY datname');
+    const sql = 'SELECT * FROM pg_catalog.pg_database ORDER BY datname';
+    return query<PgCatalogPgDatabase>(config, sql);
   },
   /**
   params should contain a {database: string} entry
@@ -46,8 +57,11 @@ const api = {
   tables(params: PgConnectionConfig & {database: string}) {
     let config = Object.assign({}, defaultClientConfig, params);
     // whoa, okay, you ready for this?
-    return query<InformationSchemaTable>(config, `SELECT * FROM information_schema.tables
-      WHERE table_schema NOT IN ('pg_catalog', 'information_schema')`) // -- AND table_type = 'BASE TABLE'
+    return query<InformationSchemaTable>(config, `
+      SELECT * FROM information_schema.tables
+      WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+      ORDER BY table_name
+    `) // -- AND table_type = 'BASE TABLE'
     .then(({rows: tables}) => {
       let table_names = tables.map(table => table.table_name);
       return query<InformationSchemaColumn>(config, `SELECT * FROM information_schema.columns
@@ -71,8 +85,6 @@ const api = {
     });
   },
   /**
-  params should contain {database: string, table: string} entries
-
   Vulnerable to SQL injection via the 'table' argument.
   */
   table(params: PgConnectionConfig & {database: string, table: string, filters?: {[index: string]: string | string[]}}) {
@@ -84,7 +96,19 @@ const api = {
       return `${key} = ANY($${values.push(arrayValue)})`;
     });
     let whereClause = (wheres.length > 0) ? ` WHERE ${wheres.join(' AND ')}` : '';
-    return query<{[index: string]: string}>(config, `SELECT * FROM ${config.table} ${whereClause} LIMIT 500`, values);
+    const sql = `SELECT * FROM ${config.table}${whereClause} LIMIT 500`;
+    return query<{[index: string]: any}>(config, sql, values).then(result => {
+      return Object.assign(result, {sql});
+    });
+  },
+  /**
+  Vulnerable to SQL injection via the 'table' argument.
+  */
+  count(params: PgConnectionConfig & {database: string, table: string}) {
+    let config = Object.assign({filters: {}}, defaultClientConfig, params);
+    return query<{count: number}>(config, `SELECT COUNT(*) FROM ${config.table}`).then(result => {
+      return result.rows[0].count;
+    });
   },
   /**
   Execute an arbitrary SQL query and return the result.

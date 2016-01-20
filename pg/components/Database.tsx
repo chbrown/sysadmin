@@ -12,8 +12,10 @@ const Database = ({tables, columns, references}: DatabaseProps) => (
     <nav className="left">
       {tables.map(table =>
         <div key={table.table_name}>
-          <label>
-            <input type="checkbox" />{' '}<span>{table.table_name}</span>
+          <label className="flex">
+            {/* bizarrely, checkboxes in a overfilled flex will shrink (!?) if not wrapped in a block element */}
+            <div><input type="checkbox" /></div>
+            <span>{table.table_name}</span>
           </label>
         </div>
       )}
