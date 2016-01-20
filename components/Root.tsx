@@ -5,8 +5,8 @@ const Root = ({children}) => (
     <head>
       <meta charSet="utf-8" />
       <title>sysadmin</title>
-      <link href="/static/img/favicon.ico" rel="icon" type="image/x-icon" />
-      <link href="/static/build/site.css" rel="stylesheet" type="text/css" />
+      <link href="/build/img/favicon.ico" rel="icon" type="image/x-icon" />
+      <link href="/build/site.css" rel="stylesheet" type="text/css" />
     </head>
     <body>
       <header>
@@ -15,7 +15,7 @@ const Root = ({children}) => (
         </nav>
       </header>
       <div id="app">{children}</div>
-      <script src="/static/build/bundle.js"></script>
+      <script src="/build/bundle.js"></script>
     </body>
   </html>
 );

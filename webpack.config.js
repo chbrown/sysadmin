@@ -6,12 +6,12 @@ var production = process.env.NODE_ENV == 'production';
 
 module.exports = {
   entry: [
-    './static/app.tsx',
-    './static/site.less',
+    './app.tsx',
+    './site.less',
     // 'webpack-hot-middleware/client',
   ],
   output: {
-    path: path.join(__dirname, 'static', 'build'),
+    path: path.join(__dirname, 'build'),
     filename: 'bundle.js',
     publicPath: '/build/',
   },

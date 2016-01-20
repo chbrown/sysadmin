@@ -15,7 +15,7 @@ table {
 h1, h2, h3, h4, h5, h6 {
   margin: 1ex 0;
 }
-textarea, input, select {
+textarea, input, select, button {
   box-sizing: border-box;
 }
 a {
@@ -52,7 +52,6 @@ table {
   }
 }
 // -----------------------
-
 body {
   background-color: #FDFDFD;
 }
@@ -76,6 +75,25 @@ table {
     padding-right: 5px;
   }
 }
+ul, ol {
+  margin: 1ex 0;
+}
+details summary {
+  cursor: context-menu;
+}
+time {
+  white-space: nowrap;
+}
+
+.flex {
+  display: flex;
+  justify-content: flex-start;
+  align-items: top; // looks better than baseline
+}
+.flex-fill {
+  display: flex;
+  justify-content: space-between;
+}
 
 .vpad {
   padding-top: 10px;
@@ -98,6 +116,7 @@ table {
     font-size: 80%;
     background-color: #EEE;
     border-right: 1px solid #777;
+    word-break: break-all;
   }
 }
 
@@ -105,20 +124,15 @@ table {
   display: inline-block;
   border: 1px solid #444;
   margin: 10px 0 0 10px;
+  background-color: #CCC;
 
   font-size: 90%;
   font-family: monospace;
 
-  .name {
-    font-weight: bold;
-    padding: 5px 5px 3px 5px;
-    background-color: #CCC;
-  }
   table {
     thead {
       font-family: normal;
       font-size: 70%;
-      background-color: #CCC;
       th {
         padding-top: 0;
         border-bottom: 1px solid #888;

@@ -6,10 +6,10 @@
     "target": "ES6"
   },
   "files": [
-    "node_modules/declarations/react-router/history.d.ts",
     "node_modules/declarations/moment/moment-node.d.ts",
     "node_modules/declarations/node/node.d.ts",
     "node_modules/declarations/pg/pg.d.ts",
+    "node_modules/declarations/react-router/history.d.ts",
     "node_modules/declarations/react/react-dom.d.ts",
     "node_modules/declarations/react/react.d.ts",
     "node_modules/declarations/yargs/yargs.d.ts",
@@ -23,10 +23,11 @@
     "pg/api.browser.ts",
     "pg/api.ts",
     "pg/index.ts",
-    "static/app.tsx",
     "api.browser.ts",
     "api.ts",
+    "app.tsx",
     "routes.ts",
-    "server.ts"
+    "server.ts",
+    "util.ts"
   ]
 }

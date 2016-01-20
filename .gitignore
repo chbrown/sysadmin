@@ -7,9 +7,10 @@
 /pg/api.browser.js
 /pg/api.js
 /pg/index.js
-/static/app.js
 /api.browser.js
 /api.js
+/app.js
 /routes.js
 /server.js
-/static/build
+/util.js
+/build

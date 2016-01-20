@@ -7,11 +7,12 @@ pg/components/Table.tsx
 pg/api.browser.ts
 pg/api.ts
 pg/index.ts
-static/app.tsx
 api.browser.ts
 api.ts
+app.tsx
 routes.ts
 server.ts
+util.ts
 Makefile
 tsconfig.json
 webpack.config.js

@@ -3,13 +3,13 @@ TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -Fv .d.ts)
 TYPESCRIPT_BASENAMES = $(basename $(TYPESCRIPT))
 NODE_ARGS := --use_strict --harmony_default_parameters --harmony_destructuring --harmony_rest_parameters
 
-all: $(TYPESCRIPT_BASENAMES:%=%.js) static/build/site.css static/build/bundle.js .gitignore .npmignore
+all: $(TYPESCRIPT_BASENAMES:%=%.js) build/site.css build/bundle.js .gitignore .npmignore
 
 $(BIN)/tsc $(BIN)/webpack:
 	npm install
 
 .gitignore: tsconfig.json
-	echo $(TYPESCRIPT_BASENAMES:%=/%.js) /static/build | tr ' ' '\n' > $@
+	echo $(TYPESCRIPT_BASENAMES:%=/%.js) /build | tr ' ' '\n' > $@
 
 .npmignore: tsconfig.json
 	echo $(TYPESCRIPT) Makefile tsconfig.json webpack.config.js | tr ' ' '\n' > $@
@@ -21,15 +21,16 @@ $(BIN)/tsc $(BIN)/webpack:
 	$(BIN)/tsc
 
 server: server.js
-	node_restarter '**/*.js' '!**/bundle.js' '!node_modules/**/*.js' 'node $(NODE_ARGS) server.js'
+	node $(NODE_ARGS) server.js
 
-dev: webpack.config.js $(BIN)/webpack
-	$(BIN)/webpack --watch --config $<
+dev: $(BIN)/webpack
+	(\
+   $(BIN)/webpack --watch --config webpack.config.js & \
+   $(BIN)/tsc --watch & \
+   node_restarter '**/*.js' '!**/bundle.js' '!node_modules/**/*.js' 'node $(NODE_ARGS) server.js' & \
+   wait)
 
-static/build/site.css: webpack.config.js static/site.less
-	NODE_ENV=production $(BIN)/webpack --config $<
-
-static/build/bundle.js: webpack.config.js static/app.tsx
+build/bundle.js build/site.css: webpack.config.js app.tsx site.less
 	NODE_ENV=production $(BIN)/webpack --config $<
 
 clean:
