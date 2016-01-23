@@ -27,7 +27,7 @@
     "yargs": "*"
   },
   "devDependencies": {
-    "autoprefixer-loader": "*",
+    "autoprefixer": "*",
     "babel-core": "^5.0.0",
     "babel-loader": "^5.0.0",
     "babel-plugin-react-transform": "^1.1.0",
@@ -36,6 +36,7 @@
     "extract-text-webpack-plugin": "*",
     "less": "*",
     "less-loader": "*",
+    "postcss-loader": "*",
     "react-transform-catch-errors": "*",
     "react-transform-hmr": "*",
     "style-loader": "*",

@@ -1,5 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
+var autoprefixer = require('autoprefixer');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 var production = process.env.NODE_ENV == 'production';
@@ -51,8 +52,11 @@ module.exports = {
       },
       {
         test: /\.less$/,
-        loader: ExtractTextPlugin.extract('style-loader', 'css-loader?minimize!autoprefixer-loader!less-loader'),
+        loader: ExtractTextPlugin.extract('style-loader', 'css-loader?minimize!postcss-loader!less-loader'),
       },
     ],
+  },
+  postcss: function() {
+    return [autoprefixer];
   },
 };
