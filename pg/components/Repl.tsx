@@ -30,7 +30,7 @@ class Repl extends React.Component<ReplProps, ReplState> {
     }
     this._pushHistory_timeout = setTimeout(() => {
       const {history}: {history: HistoryModule.History} = this.context as any;
-      const newLocation = `/pg/${this.props.database}/repl/?sql=${sql}&variables=${variables}`;
+      const newLocation = `/pg/${this.props.database}/repl/?sql=${encodeURIComponent(sql)}&variables=${encodeURIComponent(variables)}`;
       console.log('push newLocation', newLocation);
       history.push(newLocation);
       this._pushHistory_timeout = undefined;
@@ -74,12 +74,13 @@ class Repl extends React.Component<ReplProps, ReplState> {
         <form onSubmit={this.onSubmit.bind(this)} className="hpad" onKeyDown={this.onKeyDown.bind(this)}>
           <label>
             <div><b>SQL</b></div>
-            <textarea style={{minHeight: '100px'}}
+            <textarea style={{minHeight: '200px', width: '100%'}}
               defaultValue={sql} onChange={this.onInputChange.bind(this, 'sql')} />
           </label>
           <label>
             <div><b>Variables</b></div>
-            <textarea defaultValue={variables} onChange={this.onInputChange.bind(this, 'variables')} />
+            <textarea rows={1} style={{width: '100%'}}
+              defaultValue={variables} onChange={this.onInputChange.bind(this, 'variables')} />
           </label>
           <div><button>Submit (⌘⏎)</button></div>
         </form>

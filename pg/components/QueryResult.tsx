@@ -59,11 +59,20 @@ const Cell = ({value, field}: {value: any, field: PgField}) => {
 
 interface QueryResultProps extends PgQueryResult<any> {
   sql?: string;
+  totalRowCount?: number;
+  timeElapsed?: number;
 }
+const QueryResultPropTypes: React.ValidationMap<any> = {
+  fields: React.PropTypes.array.isRequired,
+  rows: React.PropTypes.array.isRequired,
+  sql: React.PropTypes.string,
+  totalRowCount: React.PropTypes.number,
+  timeElapsed: React.PropTypes.number,
+};
 
-const QueryResultTable = ({fields, rows, sql}: QueryResultProps) => {
+const QueryResultTable = ({fields, rows, sql, totalRowCount, timeElapsed}: QueryResultProps) => {
   if (rows.length === 0) {
-    return <div><b>No results</b></div>;
+    return <div className="hpad vpad"><b>No results</b></div>;
   }
   // find the interesting fields, i.e., those where the values in each row are
   // not all the same
@@ -77,7 +86,8 @@ const QueryResultTable = ({fields, rows, sql}: QueryResultProps) => {
   return (
     <div>
       <div className="hpad flex-fill">
-        <h3>Table ({rows.length} rows)</h3>
+        <h3>Table ({rows.length}{totalRowCount && `/${totalRowCount}`} rows)</h3>
+        {timeElapsed && <div>Time: {timeElapsed} ms</div>}
         {sql && <div><a href={`repl/?sql=${sql}`}>repl</a></div>}
       </div>
       <table className="fill padded lined striped">
@@ -111,41 +121,39 @@ const QueryResultTable = ({fields, rows, sql}: QueryResultProps) => {
           })}
         </ul>
       </div>}
-      <h3 className="hpad">All fields</h3>
-      <table className="fill padded lined striped">
-        <thead>
-          <tr>
-            <th>name</th>
-            <th>tableID</th>
-            <th>columnID</th>
-            <th>dataTypeID</th>
-            <th>dataTypeSize</th>
-            <th>dataTypeModifier</th>
-            <th>format</th>
-          </tr>
-        </thead>
-        <tbody>
-          {fields.map(({name, tableID, columnID, dataTypeID, dataTypeSize, dataTypeModifier, format}) =>
-            <tr key={name}>
-              <td>{name}</td>
-              <td>{tableID}</td>
-              <td>{columnID}</td>
-              <td>{dataTypeID}</td>
-              <td>{dataTypeSize}</td>
-              <td>{dataTypeModifier}</td>
-              <td>{format}</td>
+      <details className="vpad">
+        <summary className="hpad"><b>Result fields</b></summary>
+        <table className="fill padded lined striped">
+          <thead>
+            <tr>
+              <th>name</th>
+              <th>tableID</th>
+              <th>columnID</th>
+              <th>dataTypeID</th>
+              <th>dataTypeSize</th>
+              <th>dataTypeModifier</th>
+              <th>format</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {fields.map(({name, tableID, columnID, dataTypeID, dataTypeSize, dataTypeModifier, format}) =>
+              <tr key={name}>
+                <td>{name}</td>
+                <td>{tableID}</td>
+                <td>{columnID}</td>
+                <td>{dataTypeID}</td>
+                <td>{dataTypeSize}</td>
+                <td>{dataTypeModifier}</td>
+                <td>{format}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </details>
     </div>
   );
 };
-QueryResultTable['propTypes'] = {
-  fields: React.PropTypes.array.isRequired,
-  rows: React.PropTypes.array.isRequired,
-  sql: React.PropTypes.string,
-};
+QueryResultTable['propTypes'] = QueryResultPropTypes;
 
 /**
 Wrapper Component with shouldComponentUpdate until stateless functional
@@ -160,7 +168,7 @@ class QueryResultTableView extends React.Component<QueryResultProps, {}> {
   render() {
     return <QueryResultTable {...this.props} />;
   }
-  static propTypes = QueryResultTable['propTypes'];
+  static propTypes = QueryResultPropTypes;
 }
 
 export default QueryResultTableView;

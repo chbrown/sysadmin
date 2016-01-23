@@ -81,11 +81,12 @@ const routes: Route[] = [
       return Promise.all([
         pgApi.table({database, table, filters: req.query}),
         pgApi.count({database, table}),
-      ]).then(([result, count]) => {
+      ]).then(([result, totalRowCount]) => {
         // Why does TypeScript let me add 'headers' to the return value if
         // there is no such field on the ResponsePayload interface? weird.
         // http://otac0n.com/blog/2012/11/21/range-header-i-choose-you.html
-        let headers = [['Content-Range', `${table} 0-${result.rows.length}/${count}`]];
+        let headers = [['Content-Range', `${table} 0-${result.rows.length}/${totalRowCount}`]];
+        const props = Object.assign(result, {totalRowCount});
         return {props: result, component: QueryResult, headers};
       });
     },

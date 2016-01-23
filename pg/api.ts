@@ -20,18 +20,19 @@ When supplying variables in a SQL query use 1-indexed $N placeholders. E.g.:
 
 query(config, 'SELECT * FROM users WHERE id = $1', [1])
 */
-function query<T>(config: PgConnectionConfig, queryText: string, values: any[] = []): Promise<PgQueryResult<T>> {
-  return new Promise<PgQueryResult<T>>((resolve, reject) => {
+function query<T>(config: PgConnectionConfig, queryText: string, values: any[] = []): Promise<PgQueryResult<T> & {timeElapsed: number}> {
+  return new Promise<PgQueryResult<T> & {timeElapsed: number}>((resolve, reject) => {
+    const timeStarted = Date.now();
     connect(config, (error, client, done: (arg?: any) => void) => {
       if (error) return reject(error);
       console.info(`pg:query config=${inspect(config)} sql="${queryText}" values=${inspect(values)}`);
-      client.query(queryText, values, (error, result: PgQueryResult<T>) => {
+      client.query(queryText, values, (error: Error, result: PgQueryResult<T>) => {
         // calling done() with a truthy value triggers removal of the client
         // from the client pool, just to be safe
         done(error && client);
         if (error) return reject(error);
         // console.info(`query result:`, result);
-        resolve(result);
+        resolve(Object.assign(result, {timeElapsed: Date.now() - timeStarted}));
       });
     });
   });
