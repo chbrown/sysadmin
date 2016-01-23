@@ -14,6 +14,8 @@ interface TableProps {
   references: Reference[];
 }
 const Table = ({table, columns, references}: TableProps) => {
+  const showDefault = columns.some(column => !!column.column_default);
+  const showRefs = references.length > 0;
   return (
     <div className="pg-table">
       <div className="flex-fill" style={{padding: '3px 5px 3px 5px'}}>
@@ -26,8 +28,8 @@ const Table = ({table, columns, references}: TableProps) => {
             <th>column</th>
             <th>type</th>
             <th>null / not null</th>
-            <th>default</th>
-            <th>refs</th>
+            {showDefault && <th>default</th>}
+            {showRefs && <th>refs</th>}
           </tr>
         </thead>
         <tbody>
@@ -36,12 +38,16 @@ const Table = ({table, columns, references}: TableProps) => {
               <td title="column_name">{column.column_name}</td>
               <td title="data_type">{column.data_type}</td>
               <td title="is_nullable">{(column.is_nullable === 'YES') ? 'NULL' : 'NOT NULL'}</td>
-              <td title="column_default">{/^nextval/.test(column.column_default) ? 'AUTOINC' : column.column_default}</td>
-              <td>
-                {references.filter(reference => reference.column_name == column.column_name).map((reference, i) =>
-                  <div key={i}>→ {reference.unique_table_name}({reference.unique_column_name})</div>
-                )}
-              </td>
+              {showDefault &&
+                <td title="column_default">
+                  {/^nextval/.test(column.column_default) ? 'AUTOINC' : column.column_default}
+                </td>}
+              {showRefs &&
+                <td>
+                  {references.filter(reference => reference.column_name == column.column_name).map((reference, i) =>
+                    <div key={i}>→ {reference.unique_table_name}({reference.unique_column_name})</div>
+                  )}
+                </td>}
             </tr>
           )}
         </tbody>
