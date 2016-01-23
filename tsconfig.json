@@ -6,6 +6,7 @@
     "target": "ES6"
   },
   "files": [
+    "node_modules/declarations/lib/fetch.d.ts",
     "node_modules/declarations/moment/moment-node.d.ts",
     "node_modules/declarations/node/node.d.ts",
     "node_modules/declarations/pg/pg.d.ts",
@@ -13,7 +14,6 @@
     "node_modules/declarations/react/react-dom.d.ts",
     "node_modules/declarations/react/react.d.ts",
     "node_modules/declarations/yargs/yargs.d.ts",
-    "fetch.d.ts",
     "components/DateTime.tsx",
     "components/Root.tsx",
     "pg/components/Database.tsx",
