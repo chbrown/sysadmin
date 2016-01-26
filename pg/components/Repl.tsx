@@ -74,7 +74,7 @@ class Repl extends React.Component<ReplProps, ReplState> {
         <form onSubmit={this.onSubmit.bind(this)} className="hpad" onKeyDown={this.onKeyDown.bind(this)}>
           <label>
             <div><b>SQL</b></div>
-            <textarea style={{minHeight: '200px', width: '100%'}}
+            <textarea rows={6} style={{width: '100%'}}
               defaultValue={sql} onChange={this.onInputChange.bind(this, 'sql')} />
           </label>
           <label>

@@ -10,7 +10,7 @@ function post(url: string, body: any) {
 // const api: API = {} as any;
 // appease the webpack run of the TypeScript compiler by giving api the type of `any`
 const api: any = {};
-['databases', 'tables', 'table', 'count', 'query'].forEach(key => {
+['databases', 'tables', 'count', 'query'].forEach(key => {
   api[key] = (params) => post(`/pg/api/${key}`, params);
 });
 export default api;

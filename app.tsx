@@ -32,10 +32,10 @@ history.listen(location => {
   let matchingRoute = urlio.parse(routes, {url, method: 'GET'});
   let req = {params: matchingRoute.params, query: location.query};
   // console.log(`matched route`, matchingRoute, req);
-  matchingRoute.handler({req}).then(payload => {
-    // console.log('rendering', matchingRoute.component, responseValue);
+  Promise.resolve(matchingRoute.handler(req)).then(payload => {
+    // console.log('rendering', matchingRoute.Component, responseValue);
     const element = React.createElement(Provider, {location} as any,
-        React.createElement(payload.component, payload.props));
+        React.createElement(payload.Component, payload.props));
     return ReactDOM.render(element, document.getElementById('app'));
   }).catch(reason => {
     console.error('route.handler or renderReact failed:', reason);

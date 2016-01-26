@@ -18,11 +18,11 @@ const Table = ({table, columns, references}: TableProps) => {
   const showRefs = references.length > 0;
   return (
     <div className="pg-table">
-      <div className="flex-fill" style={{padding: '3px 5px 3px 5px'}}>
-        <a href={table.table_name} title="table_name"><b>{table.table_name}</b></a>
+      <header className="flex-fill">
+        <span><a href={table.table_name} title="table_name">{table.table_name}</a></span>
         <span title="table_type">{table.table_type}</span>
-      </div>
-      <table className="lined striped">
+      </header>
+      <table className="fill lined striped">
         <thead>
           <tr>
             <th>column</th>

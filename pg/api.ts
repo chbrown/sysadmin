@@ -88,25 +88,8 @@ const api = {
   /**
   Vulnerable to SQL injection via the 'table' argument.
   */
-  table(params: PgConnectionConfig & {database: string, table: string, filters?: {[index: string]: string | string[]}}) {
-    let config = Object.assign({filters: {}}, defaultClientConfig, params);
-    let values = [];
-    let wheres = Object.keys(config.filters).map(key => {
-      let value = config.filters[key];
-      let arrayValue = Array.isArray(value) ? value : [value];
-      return `${key} = ANY($${values.push(arrayValue)})`;
-    });
-    let whereClause = (wheres.length > 0) ? ` WHERE ${wheres.join(' AND ')}` : '';
-    const sql = `SELECT * FROM ${config.table}${whereClause} LIMIT 500`;
-    return query<{[index: string]: any}>(config, sql, values).then(result => {
-      return Object.assign(result, {sql});
-    });
-  },
-  /**
-  Vulnerable to SQL injection via the 'table' argument.
-  */
   count(params: PgConnectionConfig & {database: string, table: string}) {
-    let config = Object.assign({filters: {}}, defaultClientConfig, params);
+    let config = Object.assign({}, defaultClientConfig, params);
     return query<{count: number}>(config, `SELECT COUNT(*) FROM ${config.table}`).then(result => {
       return result.rows[0].count;
     });

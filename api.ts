@@ -10,7 +10,7 @@ const api = {
   readFile({path}: {path: string}) {
     const filepath = join(__dirname, path);
     // console.info(`api.readFile:createReadStream(${filepath})`);
-    return Promise.resolve(createReadStream(filepath));
+    return createReadStream(filepath);
   },
 };
 export default api;

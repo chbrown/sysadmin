@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import {ErrorView} from './components/Root';
 import Database from './pg/components/Database';
 import Repl from './pg/components/Repl';
 import QueryResult from './pg/components/QueryResult';
@@ -11,9 +12,8 @@ export type ReactComponent<P> = React.ComponentClass<P> | React.StatelessCompone
 
 export interface ResponsePayload<T> {
   props?: T;
-  component?: ReactComponent<T>;
+  Component?: ReactComponent<T>;
   stream?: NodeJS.ReadableStream;
-  redirect?: string;
   statusCode?: number;
   headers?: [string, string][];
 }
@@ -27,83 +27,99 @@ interface Request {
 export interface Route {
   url: string;
   method: string;
-  handler: (input: {req: Request}) => Promise<ResponsePayload<any>>;
+  handler: (req: {params?: any, query?: any, body?: any, method?: string, pathname?: string}) =>
+    Promise<ResponsePayload<any>> | ResponsePayload<any>;
 }
 
 const routes: Route[] = [
   {
     url: '/pg/',
     method: 'GET',
-    handler: ({req}: {req: Request}) => {
-      return pgApi.databases().then(props => ({props, component: QueryResult}));
+    handler() {
+      return pgApi.databases().then(props => ({props, Component: QueryResult}));
     },
   },
   {
     url: '/pg/api/:name',
     method: 'POST',
-    handler: ({req}: {req: Request}) => {
-      return pgApi[req.params.name](req.body).then(props => ({props}));
+    handler({params, body}) {
+      return pgApi[params.name](body).then(props => ({props}));
     },
   },
   {
     url: '/pg/:database/',
     method: 'GET',
-    handler: ({req}: {req: Request}) => {
-      let {database} = req.params;
-      return pgApi.tables({database}).then(props => ({props, component: Database}));
+    handler({params}) {
+      let {database} = params;
+      return pgApi.tables({database}).then(props => ({props, Component: Database}));
     },
   },
   {
     url: '/pg/:database/repl/',
     method: 'GET',
-    handler: ({req}: {req: Request}) => {
-      let {query = {}, params} = req;
+    handler({params, query = {}}) {
       let {sql, variables} = query;
       let {database} = params;
-      return Promise.resolve({props: {sql, variables, database}, component: Repl});
+      return Promise.resolve({props: {sql, variables, database}, Component: Repl});
     },
   },
   {
     url: '/pg/:database/query',
     method: 'POST',
-    handler: ({req}: {req: Request}) => {
-      let {database} = req.params;
-      let {sql, variables} = req.body;
-      return pgApi.query({database, sql, variables}).then(props => ({props, component: QueryResult}));
+    handler({params, body}) {
+      let {database} = params;
+      let {sql, variables} = body;
+      return pgApi.query({database, sql, variables}).then(props => ({props, Component: QueryResult}));
     },
   },
   {
     url: '/pg/:database/:table',
     method: 'GET',
-    handler: ({req}: {req: Request}) => {
-      let {database, table} = req.params;
+    handler({params, query = {}}) {
+      let {database, table, offset = 0, limit = 100} = params;
       // TODO: handle offset & limit better, particularly with the Content-Range output
+      // Vulnerable to SQL injection via the 'table' argument!
+      const sql = `SELECT * FROM ${table} OFFSET $1 LIMIT $2`;
+      const variables = [offset, limit];
       return Promise.all([
-        pgApi.table({database, table, filters: req.query}),
+        pgApi.query({database, sql, variables}),
         pgApi.count({database, table}),
       ]).then(([result, totalRowCount]) => {
+        const columnNames = result.fields.map(field => field.name);
+        // TODO: maybe escape columnNames that need escaping? or fall back to * if any of the columns are weird?
+        const sql = `SELECT ${columnNames.join(', ')} FROM ${table}`;
         // Why does TypeScript let me add 'headers' to the return value if
         // there is no such field on the ResponsePayload interface? weird.
         // http://otac0n.com/blog/2012/11/21/range-header-i-choose-you.html
         let headers = [['Content-Range', `${table} 0-${result.rows.length}/${totalRowCount}`]];
-        const props = Object.assign(result, {totalRowCount});
-        return {props: result, component: QueryResult, headers};
+        const props = Object.assign(result, {totalRowCount, sql});
+        return {props: result, Component: QueryResult, headers};
       });
     },
   },
   {
     url: '/build/*',
     method: 'GET',
-    handler: ({req}: {req: Request}) => {
-      let {splat} = req.params;
-      return api.readFile({path: `build/${splat}`}).then(stream => ({stream}));
+    handler({params}) {
+      let {splat} = params;
+      let stream = api.readFile({path: `build/${splat}`});
+      return {stream};
     },
   },
   {
     url: '/',
     method: 'GET',
-    handler: ({req}: {req: Request}) => {
-      return Promise.resolve({redirect: '/pg/', statusCode: 302});
+    handler() {
+      const headers = [['Location', '/pg/']];
+      return {headers, statusCode: 302};
+    },
+  },
+  {
+    url: '*',
+    method: '*',
+    handler({method, pathname}) {
+      let message = `No route found: ${method} ${pathname}`;
+      return {props: {message}, Component: ErrorView, statusCode: 404};
     },
   },
 ];

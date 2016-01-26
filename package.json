@@ -18,6 +18,7 @@
   "dependencies": {
     "history": "*",
     "http-extend": "*",
+    "http-respond": "*",
     "loge": "*",
     "moment": "*",
     "pg": "*",

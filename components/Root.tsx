@@ -1,5 +1,13 @@
 import * as React from 'react';
 
+export const ErrorView = ({message, stack}) => (
+  <div className="hpad">
+    <h2>Error!</h2>
+    <h3 title="message">{message}</h3>
+    <pre title="stack">{stack}</pre>
+  </div>
+);
+
 const Root = ({children}) => (
   <html>
     <head>
@@ -9,11 +17,9 @@ const Root = ({children}) => (
       <link href="/build/site.css" rel="stylesheet" type="text/css" />
     </head>
     <body>
-      <header>
-        <nav>
-          <a href="/pg/">pg</a>
-        </nav>
-      </header>
+      <nav>
+        <a href="/pg/">pg</a>
+      </nav>
       <div id="app">{children}</div>
       <script src="/build/bundle.js"></script>
     </body>
