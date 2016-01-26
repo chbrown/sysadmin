@@ -52,6 +52,7 @@
     "sysadmin": "bin/sysadmin.js"
   },
   "scripts": {
+    "prepublish": "make",
     "start": "bin/sysadmin.js"
   }
 }
