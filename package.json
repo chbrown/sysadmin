@@ -48,6 +48,9 @@
     "webpack-hot-middleware": "*"
   },
   "bin": {
-    "sysadmin": "bin/sysadmin"
+    "sysadmin": "bin/sysadmin.js"
+  },
+  "scripts": {
+    "start": "bin/sysadmin.js"
   }
 }

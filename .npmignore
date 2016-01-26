@@ -1,3 +1,4 @@
+bin/sysadmin.ts
 components/DateTime.tsx
 components/Root.tsx
 pg/components/Database.tsx

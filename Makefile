@@ -1,7 +1,6 @@
 BIN := node_modules/.bin
 TYPESCRIPT := $(shell jq -r '.files[]' tsconfig.json | grep -Fv .d.ts)
 TYPESCRIPT_BASENAMES = $(basename $(TYPESCRIPT))
-NODE_ARGS := --use_strict --harmony_default_parameters --harmony_destructuring --harmony_rest_parameters
 
 all: $(TYPESCRIPT_BASENAMES:%=%.js) build/site.css build/bundle.js .gitignore .npmignore
 
@@ -20,14 +19,14 @@ $(BIN)/tsc $(BIN)/webpack:
 %.js: %.tsx $(BIN)/tsc
 	$(BIN)/tsc
 
-server: server.js
-	node $(NODE_ARGS) server.js
+server: bin/sysadmin.js
+	bin/sysadmin.js
 
 dev: $(BIN)/webpack
 	(\
    $(BIN)/webpack --watch --config webpack.config.js & \
    $(BIN)/tsc --watch & \
-   node_restarter '**/*.js' '!**/bundle.js' '!node_modules/**/*.js' 'node $(NODE_ARGS) server.js' & \
+   node_restarter '**/*.js' '!**/bundle.js' '!node_modules/**/*.js' 'bin/sysadmin.js' & \
    wait)
 
 build/bundle.js build/site.css: webpack.config.js app.tsx site.less

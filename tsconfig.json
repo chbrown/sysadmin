@@ -14,6 +14,7 @@
     "node_modules/declarations/react/react-dom.d.ts",
     "node_modules/declarations/react/react.d.ts",
     "node_modules/declarations/yargs/yargs.d.ts",
+    "bin/sysadmin.ts",
     "components/DateTime.tsx",
     "components/Root.tsx",
     "pg/components/Database.tsx",
