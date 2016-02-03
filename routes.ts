@@ -58,9 +58,9 @@ const routes: Route[] = [
     url: '/pg/:database/repl/',
     method: 'GET',
     handler({params, query = {}}) {
-      let {sql, variables} = query;
+      let {sql, variablesJSON} = query;
       let {database} = params;
-      return Promise.resolve({props: {sql, variables, database}, Component: Repl});
+      return Promise.resolve({props: {sql, variablesJSON, database}, Component: Repl});
     },
   },
   {
