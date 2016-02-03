@@ -1,3 +1,20 @@
+export const bind: MethodDecorator = <T extends Function>(target: Object,
+                                                          propertyKey: string | symbol,
+                                                          descriptor: TypedPropertyDescriptor<T>) => {
+  return {
+    configurable: true,
+    get() {
+      const value = descriptor.value.bind(this);
+      Object.defineProperty(this, propertyKey, {
+        value,
+        configurable: true,
+        writable: true
+      });
+      return value;
+    }
+  };
+}
+
 /**
 Check that a fetch() Response has a successful status code and turn it into a
 rejected Promise if not.
