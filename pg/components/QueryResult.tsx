@@ -98,7 +98,7 @@ const QueryResultPropTypes: React.ValidationMap<any> = {
   fields: React.PropTypes.array.isRequired,
   rows: React.PropTypes.array.isRequired,
   sql: React.PropTypes.string,
-  totalRowCount: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]).isRequired,
+  totalRowCount: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
   timeElapsed: React.PropTypes.number,
 };
 
