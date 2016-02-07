@@ -51,7 +51,7 @@ const routes: Route[] = [
     method: 'GET',
     handler({params}) {
       let {database} = params;
-      return pgApi.tables({database}).then(props => ({props, Component: Database}));
+      return pgApi.relations({database}).then(relations => ({props: {relations}, Component: Database}));
     },
   },
   {

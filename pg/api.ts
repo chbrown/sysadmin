@@ -11,9 +11,10 @@ pg['types'].setTypeParser(1115, identity); // TIMESTAMP[]
 pg['types'].setTypeParser(1182, identity); // DATE[]
 pg['types'].setTypeParser(1185, identity); // TIMESTAMPTZ[]
 
-import {PgConnectionConfig, PgQueryResult, PgCatalogPgDatabase,
-  InformationSchemaTable, InformationSchemaColumn,
-  InformationSchemaReferentialConstraint, InformationSchemaKeyColumnUsage} from './index';
+import {
+  PgConnectionConfig, PgQueryResult, PgCatalogPgDatabase,
+  RelationAttribute, RelationConstraint, Relation
+} from './index';
 
 /**
 When supplying variables in a SQL query use 1-indexed $N placeholders. E.g.:
@@ -53,36 +54,89 @@ const api = {
     return query<PgCatalogPgDatabase>(config, sql);
   },
   /**
-  params should contain a {database: string} entry
+  In most cases, atttypid::regtype will return the same thing as
+  format_type(atttypid, atttypmod), but the latter is more informative when
+  dealing with variable length or otherwise parameterized types (e.g., varchar).
+
+  attnum is negative for system attributes, e.g., 'tableoid', 'cmax', 'ctid', etc.
+  attisdropped is TRUE for recently (but not yet fully vacuumed) dropped columns.
   */
-  tables(params: PgConnectionConfig & {database: string}) {
+  attributes(params: PgConnectionConfig & {relid: string}) {
     let config = Object.assign({}, defaultClientConfig, params);
-    // whoa, okay, you ready for this?
-    return query<InformationSchemaTable>(config, `
-      SELECT * FROM information_schema.tables
-      WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
-      ORDER BY table_name
-    `) // -- AND table_type = 'BASE TABLE'
-    .then(({rows: tables}) => {
-      let table_names = tables.map(table => table.table_name);
-      return query<InformationSchemaColumn>(config, `SELECT * FROM information_schema.columns
-        WHERE table_schema NOT IN ('pg_catalog', 'information_schema') AND table_name = ANY($1)`, [table_names])
-      .then(({rows: columns}) => {
-        return query<InformationSchemaReferentialConstraint>(config, `SELECT * FROM information_schema.referential_constraints`)
-        .then(({rows: constraints}) => {
-          return query<InformationSchemaKeyColumnUsage>(config, `SELECT * FROM information_schema.key_column_usage`)
-          .then(({rows: keyColumns}) => {
-            // ok, now we join the constraints and keyColumns
-            let references = constraints.map(({constraint_name, unique_constraint_name}) => {
-              // TODO: handle multi-column foreign keys
-              let {table_name, column_name} = keyColumns.find(keyColumn => keyColumn.constraint_name === constraint_name);
-              let {table_name: unique_table_name, column_name: unique_column_name} = keyColumns.find(keyColumn => keyColumn.constraint_name === unique_constraint_name);
-              return {table_name, column_name, unique_table_name, unique_column_name};
-            });
-            return {tables, columns, references};
-          });
+    // -- would also need to grab attrelid if we were doing an `WHERE attrelid = ANY($1)` query
+    return query<RelationAttribute>(config, `
+      SELECT attname,
+        attnum,
+        format_type(atttypid, atttypmod) AS atttyp,
+        attnotnull,
+        adsrc
+      FROM pg_catalog.pg_attribute
+        LEFT OUTER JOIN pg_catalog.pg_attrdef ON adrelid = attrelid AND attnum = adnum
+      WHERE attrelid = $1 AND attnum > 0 AND NOT attisdropped
+    `, [params.relid]).then(({rows}) => rows);
+  },
+  /**
+  Get the constraints associated with a table.
+
+  Returns a list of constraints, each of which has a conkey: number[] field,
+  which indicates which of the columns it depends on.
+  */
+  constraints(params: PgConnectionConfig & {relid: string}) {
+    let config = Object.assign({}, defaultClientConfig, params);
+    return query<RelationConstraint>(config, `
+      SELECT conname,
+        CASE contype
+          WHEN 'c' THEN 'check constraint'
+          WHEN 'f' THEN 'foreign key constraint'
+          WHEN 'p' THEN 'primary key constraint'
+          WHEN 'u' THEN 'unique constraint'
+          WHEN 't' THEN 'constraint trigger'
+          WHEN 'x' THEN 'exclusion constraint'
+        END AS contype,
+        conkey,
+        pg_catalog.regclassout(confrelid) AS confrelname,
+        string_agg(fkeyatt.attname, ',') AS fkeyattnames
+      FROM pg_catalog.pg_constraint
+        LEFT OUTER JOIN pg_catalog.pg_attribute AS fkeyatt ON attrelid = confrelid AND attnum = ANY(confkey)
+      WHERE conrelid = $1
+      GROUP BY pg_constraint.oid, conname, contype, confrelid, conkey
+    `, [params.relid]).then(({rows}) => rows);
+  },
+  /**
+  params should contain a {database: string} entry
+
+  Maybe add to WHERE: pg_catalog.pg_table_is_visible(oid)
+  */
+  relations(params: PgConnectionConfig & {database: string}): Promise<Relation[]> {
+    let config = Object.assign({}, defaultClientConfig, params);
+    return query<{relid: string, relname: string, relkind: string}>(config, `
+      SELECT oid AS relid,
+        relname,
+        CASE relkind
+          WHEN 'r' THEN 'ordinary table'
+          WHEN 'i' THEN 'index'
+          WHEN 'S' THEN 'sequence'
+          WHEN 'v' THEN 'view'
+          WHEN 'm' THEN 'materialized view'
+          WHEN 'c' THEN 'composite type'
+          WHEN 't' THEN 'TOAST table'
+          WHEN 'f' THEN 'foreign table'
+        END AS relkind
+      FROM pg_catalog.pg_class
+      WHERE relnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname NOT IN
+        ('pg_toast', 'pg_temp_1', 'pg_toast_temp_1', 'pg_catalog', 'information_schema'))
+    `)
+    .then(({rows: relations}) => {
+      const promises = relations.map(relation => {
+        const relparams = Object.assign(params, {relid: relation.relid})
+        return Promise.all([
+          api.attributes(relparams),
+          api.constraints(relparams),
+        ]).then(([attributes, constraints]) => {
+          return Object.assign(relation, {attributes, constraints});
         });
       });
+      return Promise.all(promises);
     });
   },
   /**
@@ -90,8 +144,8 @@ const api = {
   */
   count(params: PgConnectionConfig & {database: string, table: string}) {
     let config = Object.assign({}, defaultClientConfig, params);
-    return query<{count: number}>(config, `SELECT COUNT(*) FROM ${config.table}`).then(result => {
-      return result.rows[0].count;
+    return query<{count: number}>(config, `SELECT COUNT(*) FROM ${config.table}`).then(({rows}) => {
+      return rows[0].count;
     });
   },
   /**

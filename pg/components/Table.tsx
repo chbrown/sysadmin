@@ -1,26 +1,15 @@
 import * as React from 'react';
-import {InformationSchemaTable, InformationSchemaColumn, InformationSchemaReferentialConstraint} from '../index';
+import {Relation, RelationAttribute} from '../index';
 
-export interface Reference {
-  table_name: string;
-  column_name: string;
-  unique_table_name: string;
-  unique_column_name: string;
-}
-
-interface TableProps {
-  table: InformationSchemaTable;
-  columns: InformationSchemaColumn[];
-  references: Reference[];
-}
-const Table = ({table, columns, references}: TableProps) => {
-  const showDefault = columns.some(column => !!column.column_default);
-  const showRefs = references.length > 0;
+const Table = ({relname, relkind, attributes, constraints}: Relation) => {
+  const showDefault = attributes.some(attribute => attribute.adsrc !== null);
+  const refConstraints = constraints.filter(constraint => constraint.contype == 'foreign key constraint');
+  const showRefs = refConstraints.length > 0;
   return (
     <div className="pg-table">
       <header className="flex-fill">
-        <span><a href={table.table_name} title="table_name">{table.table_name}</a></span>
-        <span title="table_type">{table.table_type}</span>
+        <span><a href={relname} title="table_name">{relname}</a></span>
+        <span title="table_type">{relkind}</span>
       </header>
       <table className="fill lined striped">
         <thead>
@@ -33,32 +22,31 @@ const Table = ({table, columns, references}: TableProps) => {
           </tr>
         </thead>
         <tbody>
-          {columns.map(column =>
-            <tr key={column.column_name}>
-              <td title="column_name">{column.column_name}</td>
-              <td title="data_type">{column.data_type}</td>
-              <td title="is_nullable">{(column.is_nullable === 'YES') ? 'NULL' : 'NOT NULL'}</td>
+          {attributes.map(attribute =>
+            <tr key={attribute.attname}>
+              <td>{attribute.attname}</td>
+              <td>{attribute.atttyp}</td>
+              <td>{attribute.attnotnull ? 'NOT NULL' : 'NULL'}</td>
               {showDefault &&
-                <td title="column_default">
-                  {/^nextval/.test(column.column_default) ? 'AUTOINC' : column.column_default}
+                <td>
+                  {/^nextval/.test(attribute.adsrc) ? 'AUTOINC' : attribute.adsrc}
                 </td>}
               {showRefs &&
                 <td>
-                  {references.filter(reference => reference.column_name == column.column_name).map((reference, i) =>
-                    <div key={i}>→ {reference.unique_table_name}({reference.unique_column_name})</div>
+                  {refConstraints.filter(constraint => new Set(constraint.conkey).has(attribute.attnum)).map(refConstraint =>
+                    <div key={refConstraint.conname}>→ {refConstraint.confrelname}({refConstraint.fkeyattnames})</div>
                   )}
                 </td>}
             </tr>
           )}
         </tbody>
       </table>
-
     </div>
   );
 };
 Table['propTypes'] = {
-  table: React.PropTypes.any.isRequired,
-  columns: React.PropTypes.array.isRequired,
-  constraints: React.PropTypes.array.isRequired,
+  relkind: React.PropTypes.string.isRequired,
+  relname: React.PropTypes.string.isRequired,
+  attributes: React.PropTypes.array.isRequired,
 };
 export default Table;

@@ -1,21 +1,19 @@
 import * as React from 'react';
-import {InformationSchemaTable, InformationSchemaColumn} from '../index';
-import Table, {Reference} from './Table';
+import {Relation, RelationAttribute} from '../index';
+import Table from './Table';
 
 interface DatabaseProps {
-  tables: InformationSchemaTable[];
-  columns: InformationSchemaColumn[];
-  references: Reference[];
+  relations: Relation[];
 }
-const Database = ({tables, columns, references}: DatabaseProps) => (
+const Database = ({relations}: DatabaseProps) => (
   <div className="database">
     <nav className="left">
-      {tables.map(table =>
-        <div key={table.table_name}>
+      {relations.map(relation =>
+        <div key={relation.relname}>
           <label className="flex">
             {/* bizarrely, checkboxes in a overfilled flex will shrink (!?) if not wrapped in a block element */}
             <div><input type="checkbox" /></div>
-            <span>{table.table_name}</span>
+            <span>{relation.relname}</span>
           </label>
         </div>
       )}
@@ -24,16 +22,13 @@ const Database = ({tables, columns, references}: DatabaseProps) => (
       </div>
     </nav>
     <main>
-      {tables.map(table =>
-        <Table key={table.table_name}
-          table={table}
-          references={references.filter(reference => reference.table_name == table.table_name)}
-          columns={columns.filter(column => column.table_name == table.table_name)} />
+      {relations.map(relation =>
+        <Table key={relation.relname} {...relation} />
       )}
     </main>
   </div>
 );
 Database['propTypes'] = {
-  tables: React.PropTypes.array.isRequired,
+  relations: React.PropTypes.array.isRequired,
 };
 export default Database;

@@ -154,13 +154,18 @@ export interface InformationSchemaKeyColumnUsage {
   position_in_unique_constraint: cardinal_number;
 }
 
-/*!
-PostgreSQL pg_catalog types.
+/*******************************************************************************
+  pg_catalog types: http://www.postgresql.org/docs/current/static/catalogs.html
+*******************************************************************************/
 
-http://www.postgresql.org/docs/current/static/catalogs.html
-*/
 export type name = string;
+export type text = string;
 export type integer = number;
+export type int4 = number;
+export type int2 = number;
+export type bool = boolean;
+export type char = string;
+export type pg_node_tree = string;
 /** object identifier */
 export type oid = number;
 /** transaction "xact" identifier */
@@ -183,6 +188,127 @@ export interface PgCatalogPgDatabase {
   datminmxid:    xid;
   dattablespace: oid;
   datacl?:       aclitem[];
+}
+
+/** Table "pg_catalog.pg_tables" (http://www.postgresql.org/docs/current/static/view-pg-tables.html) */
+export interface PgCatalogPgTable {
+  /** Name of schema containing table (references pg_namespace.nspname) */
+  schemaname:  name;
+  /** Name of table (references pg_class.relname) */
+  tablename:   name;
+  /** Name of table's owner (references pg_authid.rolname) */
+  tableowner:  name;
+  /** Name of tablespace containing table (null if default for database) (references pg_tablespace.spcname) */
+  tablespace:  name;
+  /** True if table has (or recently had) any indexes (references pg_class.relhasindex) */
+  hasindexes:  boolean;
+  /** True if table has (or once had) rules (references pg_class.relhasrules) */
+  hasrules:    boolean;
+  /** True if table has (or once had) triggers (references pg_class.relhastriggers) */
+  hastriggers: boolean;
+  /** True if row security is enabled on the table (references pg_class.relrowsecurity) */
+  rowsecurity: boolean;
+}
+
+/** Table "pg_catalog.pg_attribute" (http://www.postgresql.org/docs/current/static/catalog-pg-attribute.html) */
+export interface PgCatalogPgAttribute {
+  /** The table this column belongs to (references pg_class.oid) */
+  attrelid: oid;
+  /** The column name */
+  attname: name;
+  /** The data type of this column (references pg_type.oid).
+  Can be cast to 'regtype' to get a generic string representation.
+  */
+  atttypid: oid;
+  /** attstattarget controls the level of detail of statistics accumulated for this column by ANALYZE. A zero value indicates that no statistics should be collected. A negative value says to use the system default statistics target. The exact meaning of positive values is data type-dependent. For scalar data types, attstattarget is both the target number of "most common values" to collect, and the target number of histogram bins to create. */
+  attstattarget: int4;
+  /** A copy of pg_type.typlen of this column's type */
+  attlen: int2;
+  /** The number of the column. Ordinary columns are numbered from 1 up. System columns, such as oid, have (arbitrary) negative numbers. */
+  attnum: int2;
+  /** Number of dimensions, if the column is an array type; otherwise 0. (Presently, the number of dimensions of an array is not enforced, so any nonzero value effectively means "it's an array".) */
+  attndims: int4;
+  /** Always -1 in storage, but when loaded into a row descriptor in memory this might be updated to cache the offset of the attribute within the row */
+  attcacheoff: int4;
+  /** atttypmod records type-specific data supplied at table creation time (for example, the maximum length of a varchar column). It is passed to type-specific input functions and length coercion functions. The value will generally be -1 for types that do not need atttypmod. */
+  atttypmod: int4;
+  /** A copy of pg_type.typbyval of this column's type */
+  attbyval: bool;
+  /** Normally a copy of pg_type.typstorage of this column's type. For TOAST-able data types, this can be altered after column creation to control storage policy. */
+  attstorage: char;
+  /** A copy of pg_type.typalign of this column's type */
+  attalign: char;
+  /** This represents a not-null constraint. */
+  attnotnull: bool;
+  /** This column has a default value, in which case there will be a corresponding entry in the pg_attrdef catalog that actually defines the value. */
+  atthasdef: bool;
+  /** This column has been dropped and is no longer valid. A dropped column is still physically present in the table, but is ignored by the parser and so cannot be accessed via SQL. */
+  attisdropped: bool;
+  /** This column is defined locally in the relation. Note that a column can be locally defined and inherited simultaneously. */
+  attislocal: bool;
+  /** The number of direct ancestors this column has. A column with a nonzero number of ancestors cannot be dropped nor renamed. */
+  attinhcount: int4;
+  /** The defined collation of the column, or zero if the column is not of a collatable data type. (references pg_collation.oid) */
+  attcollation: oid;
+  /** Column-level access privileges, if any have been granted specifically on this column */
+  attacl: aclitem[];
+  /** Attribute-level options, as "keyword=value" strings */
+  attoptions: text[];
+  /** Attribute-level foreign data wrapper options, as "keyword=value" strings */
+  attfdwoptions: text[];
+}
+
+export interface PgCatalogPgConstraint {
+  /** Row identifier (hidden attribute; must be explicitly selected) */
+  oid: oid;
+  /** Constraint name (not necessarily unique!) */
+  conname: name;
+  /** The OID of the namespace that contains this constraint (references pg_namespace.oid) */
+  connamespace: oid;
+  /** c = check constraint, f = foreign key constraint, p = primary key constraint, u = unique constraint, t = constraint trigger, x = exclusion constraint */
+  contype: char;
+  /** Is the constraint deferrable? */
+  condeferrable: bool;
+  /** Is the constraint deferred by default? */
+  condeferred: bool;
+  /** Has the constraint been validated? Currently, can only be false for foreign keys and CHECK constraints */
+  convalidated: bool;
+  /** The table this constraint is on; 0 if not a table constraint (references pg_class.oid) */
+  conrelid: oid;
+  /** The domain this constraint is on; 0 if not a domain constraint (references pg_type.oid) */
+  contypid: oid;
+  /** The index supporting this constraint, if it's a unique, primary key, foreign key, or exclusion constraint; else 0 (references pg_class.oid) */
+  conindid: oid;
+  /** If a foreign key, the referenced table; else 0 (references pg_class.oid) */
+  confrelid: oid;
+  /** Foreign key update action code: a = no action, r = restrict, c = cascade, n = set null, d = set default */
+  confupdtype: char;
+  /** Foreign key deletion action code: a = no action, r = restrict, c = cascade, n = set null, d = set default */
+  confdeltype: char;
+  /** Foreign key match type: f = full, p = partial, s = simple */
+  confmatchtype: char;
+  /** This constraint is defined locally for the relation. Note that a constraint can be locally defined and inherited simultaneously. */
+  conislocal: bool;
+  /** The number of direct inheritance ancestors this constraint has. A constraint with a nonzero number of ancestors cannot be dropped nor renamed. */
+  coninhcount: int4;
+  /** This constraint is defined locally for the relation. It is a non-inheritable constraint. */
+  connoinherit: bool;
+  /** If a table constraint (including foreign keys, but not constraint triggers), list of the constrained columns (references pg_attribute.attnum) */
+  conkey: int2[];
+  /** If a foreign key, list of the referenced columns (references pg_attribute.attnum) */
+  confkey: int2[];
+  /** If a foreign key, list of the equality operators for PK = FK comparisons (references pg_operator.oid) */
+  conpfeqop: oid[];
+  /** If a foreign key, list of the equality operators for PK = PK comparisons (references pg_operator.oid) */
+  conppeqop: oid[];
+  /** If a foreign key, list of the equality operators for FK = FK comparisons (references pg_operator.oid) */
+  conffeqop: oid[];
+  /** If an exclusion constraint, list of the per-column exclusion operators (references pg_operator.oid) */
+  conexclop: oid[];
+  /** If a check constraint, an internal representation of the expression */
+  conbin: pg_node_tree;
+  /** If a check constraint, a human-readable representation of the expression */
+  consrc: text;
 }
 
 /*******************************************************************************
@@ -220,4 +346,39 @@ export interface PgConnectionConfig {
   port?: number;
   host?: string;
   ssl?: boolean;
+}
+
+/*******************************************************************************
+                         custom (hydrated) types
+*******************************************************************************/
+
+export interface RelationAttribute {
+  attname: string;
+  attnum: number;
+  atttyp: string;
+  attnotnull: boolean;
+  adsrc?: string;
+}
+export interface RelationConstraint {
+  /** constraint name (not necessarily unique) */
+  conname: string;
+  /** one of: 'check constraint', 'foreign key constraint',
+  'primary key constraint', 'unique constraint', 'constraint trigger',
+  'exclusion constraint' */
+  contype: string;
+  /** 1-based indices of the constrained columns */
+  conkey: number[];
+  /** name of the foreign-referenced relation */
+  confrelname: string;
+  /** name of the attributes (columns) on the foreign relation */
+  fkeyattnames: string;
+}
+export interface Relation {
+  relid: string;
+  relname: string;
+  /** one of: 'ordinary table', 'index', 'sequence', 'view',
+  'materialized view', 'composite type', 'TOAST table', 'foreign table' */
+  relkind: string;
+  attributes: RelationAttribute[];
+  constraints: RelationConstraint[];
 }
