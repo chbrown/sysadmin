@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {PgCatalogPgDatabase, PgField, PgQueryResult} from '../index';
+import {bind} from '../../util';
 const moment = require('moment');
 
 const type_groups = {
@@ -112,7 +113,8 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
     const rowsChanged = nextProps.rows !== this.props.rows;
     return fieldsChanged || rowsChanged;
   }
-  onCopyClick(ev: Event) {
+  @bind
+  onCopyClick(ev: React.MouseEvent) {
     const fieldNames = this.props.fields.map(field => field.name);
     const rows = this.props.rows.map(row => {
       return fieldNames.map(fieldName => row[fieldName]);
@@ -138,7 +140,7 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
       <div>
         <div className="hpad flex-fill">
           <h3>Table ({rows.length}{totalRowCount && `/${totalRowCount}`} rows)</h3>
-          <span><button onClick={this.onCopyClick.bind(this)}>Copy</button></span>
+          <span><button onClick={this.onCopyClick}>Copy</button></span>
           {timeElapsed && <div>Time: {timeElapsed} ms</div>}
           {sql && <div><a href={`repl/?sql=${sql}`}>repl</a></div>}
         </div>
