@@ -4,6 +4,10 @@ import {PgCatalogPgDatabase, PgQueryResult} from '../index';
 import {bind, fetchJSON} from '../../util';
 import QueryResult from './QueryResult';
 
+function encodeURIValue(raw: string) {
+  return encodeURIComponent(raw).replace(/%20/g, '+');
+}
+
 interface ReplProps {
   database: string;
   sql?: string;
@@ -22,11 +26,9 @@ class Repl extends React.Component<ReplProps, ReplState> {
     const {sql, variablesJSON} = props;
     this.state = {sql, variablesJSON};
   }
-  pushHistory(sql: string, variablesJSON: string) {
-    const {history}: {history: HistoryModule.History} = this.context as any;
-    const newLocation = `/pg/${this.props.database}/repl/?sql=${encodeURIComponent(sql)}&variablesJSON=${encodeURIComponent(variablesJSON)}`;
-    // console.log('push newLocation', newLocation);
-    history.push(newLocation);
+  currentPath() {
+    let {sql, variablesJSON} = this.state;
+    return `/pg/${this.props.database}/repl/?sql=${encodeURIValue(sql)}&variablesJSON=${encodeURIValue(variablesJSON)}`;
   }
   @bind
   onInputChange(ev: React.FormEvent) {
@@ -41,12 +43,15 @@ class Repl extends React.Component<ReplProps, ReplState> {
       this.onSubmit(ev);
     }
   }
-  onSubmit(ev) {
+  @bind
+  onSubmit(ev: React.FormEvent) {
     ev.preventDefault(); // prevent form submission
     this.setState({errorMessage: undefined});
     let {sql, variablesJSON} = this.state;
     // let's try this: don't persist to URL while typing, but only when running a query (in onSubmit)
-    this.pushHistory(sql, variablesJSON);
+    const {history}: {history: HistoryModule.History} = this.context as any;
+    const newPath = this.currentPath();
+    history.push(newPath);
     let variables: any[] = JSON.parse(variablesJSON);
     fetchJSON('../query', {method: 'POST', body: {sql, variables}})
     .then(response => {
@@ -62,10 +67,14 @@ class Repl extends React.Component<ReplProps, ReplState> {
   }
   render() {
     const {sql, variablesJSON} = this.state;
+    const currentPath = this.currentPath();
     return (
       <div>
-        <form onSubmit={this.onSubmit.bind(this)} className="hpad" onKeyDown={this.onKeyDown}>
+        <div className="hpad flex-fill">
           <h3>Repl</h3>
+          <a href={currentPath}>url</a>
+        </div>
+        <form onSubmit={this.onSubmit} className="hpad" onKeyDown={this.onKeyDown}>
           <label>
             <div><b>SQL</b></div>
             <textarea rows={6} style={{width: '100%'}} name="sql"
