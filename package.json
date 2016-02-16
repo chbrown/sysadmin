@@ -21,11 +21,11 @@
     "http-respond": "*",
     "loge": "*",
     "moment": "*",
+    "optimist": "*",
     "pg": "*",
     "react": "*",
     "react-dom": "*",
-    "urlio": "*",
-    "yargs": "*"
+    "urlio": "*"
   },
   "devDependencies": {
     "autoprefixer": "*",

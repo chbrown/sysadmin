@@ -1,10 +1,10 @@
 #!/usr/bin/env node --use_strict --harmony_default_parameters --harmony_destructuring --harmony_rest_parameters
 import {logger, Level} from 'loge';
-import * as yargs from 'yargs';
+import * as optimist from 'optimist';
 import {defaultPort, defaultHostname, start} from '../server';
 
 export function main() {
-  let argvparser = yargs
+  let argvparser = optimist
   .usage('Usage: sysadmin')
   .describe({
     help: 'print this help message',
