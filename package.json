@@ -23,26 +23,28 @@
     "moment": "*",
     "optimist": "*",
     "pg": "*",
+    "pg-meta": "*",
     "react": "*",
     "react-dom": "*",
     "urlio": "*"
   },
   "devDependencies": {
     "autoprefixer": "*",
-    "babel-core": "^5.0.0",
-    "babel-loader": "^5.0.0",
-    "babel-plugin-react-transform": "^1.1.0",
+    "babel-core": "*",
+    "babel-loader": "*",
+    "babel-preset-es2015": "*",
+    "babel-preset-stage-1": "*",
+    "babel-preset-react": "*",
+    "babel-plugin-react-transform": "*",
     "css-loader": "*",
     "declarations": "*",
     "extract-text-webpack-plugin": "*",
     "less": "*",
     "less-loader": "*",
     "postcss-loader": "*",
-    "react-transform-catch-errors": "*",
     "react-transform-hmr": "*",
     "style-loader": "*",
-    "ts-loader": "*",
-    "typescript": "next",
+    "typescript": "*",
     "webpack": "*",
     "webpack-dev-middleware": "*",
     "webpack-dev-server": "*",
@@ -52,7 +54,6 @@
     "sysadmin": "bin/sysadmin.js"
   },
   "scripts": {
-    "prepublish": "make",
     "start": "bin/sysadmin.js"
   }
 }

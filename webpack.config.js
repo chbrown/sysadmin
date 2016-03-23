@@ -3,49 +3,44 @@ var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-var production = process.env.NODE_ENV == 'production';
+var env = process.env.NODE_ENV || 'development';
 
 module.exports = {
   entry: [
-    './app.tsx',
+    './app',
     './site.less',
-    // 'webpack-hot-middleware/client',
-  ],
+  ].concat(env === 'production' ? [] : [
+    'webpack-hot-middleware/client',
+  ]),
   output: {
     path: path.join(__dirname, 'build'),
     filename: 'bundle.js',
     publicPath: '/build/',
   },
   plugins: [
+    new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]),
     new ExtractTextPlugin('site.css', {allChunks: true}),
-  ].concat(production ? [
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify(env),
+    }),
+  ].concat(env === 'production' ? [
     new webpack.optimize.UglifyJsPlugin(),
-    new webpack.optimize.OccurenceOrderPlugin(),
   ] : [
-    // new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
+    new webpack.HotModuleReplacementPlugin(),
   ]),
   resolve: {
     extensions: [ // default: ["", ".webpack.js", ".web.js", ".js"]
       '',
-      '.browser.ts',
-      '.ts',
-      '.tsx',
+      '.browser.js',
       '.js',
-      '.jsx',
     ],
   },
   module: {
     loaders: [
       {
-        test: /\.tsx?$/,
-        loaders: ['babel-loader', 'ts-loader'],
-        include: __dirname,
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.jsx$/,
+        test: /\.js$/,
         loaders: ['babel-loader'],
         include: __dirname,
         exclude: /node_modules/,

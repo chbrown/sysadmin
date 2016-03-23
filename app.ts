@@ -35,7 +35,7 @@ history.listen(location => {
   Promise.resolve(matchingRoute.handler(req)).then(payload => {
     // console.log('rendering', matchingRoute.Component, responseValue);
     const element = React.createElement(Provider, {location} as any,
-        React.createElement(payload.Component, payload.props));
+      React.createElement(payload.Component, payload.props));
     return ReactDOM.render(element, document.getElementById('app'));
   }).catch(reason => {
     console.error('route.handler or renderReact failed:', reason);

@@ -29,7 +29,7 @@ dev: $(BIN)/webpack
    node_restarter '**/*.js' '!**/bundle.js' '!node_modules/**/*.js' 'bin/sysadmin.js' & \
    wait)
 
-build/bundle.js build/site.css: webpack.config.js app.tsx site.less
+build/bundle.js build/site.css: webpack.config.js app.ts site.less
 	NODE_ENV=production $(BIN)/webpack --config $<
 
 clean:

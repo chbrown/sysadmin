@@ -10,7 +10,7 @@ pg/api.ts
 pg/index.ts
 api.browser.ts
 api.ts
-app.tsx
+app.ts
 routes.ts
 server.ts
 util.ts
