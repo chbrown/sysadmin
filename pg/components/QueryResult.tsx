@@ -1,5 +1,6 @@
 import * as React from 'react';
-import {PgCatalogPgDatabase, PgField, PgQueryResult} from '../index';
+
+import {Field, QueryResult} from 'pg-meta/types';
 import {bind} from '../../util';
 const moment = require('moment');
 
@@ -14,7 +15,7 @@ const type_groups = {
   numeric: new Set([700, 701, 790, 1700]),
 };
 
-const Cell = ({value, field}: {value: any, field: PgField}) => {
+const Cell = ({value, field}: {value: any, field: Field}) => {
   if (field.name === 'datname') {
     return <a href={`/pg/${value}/`}>{value}</a>;
   }
@@ -31,7 +32,7 @@ const Cell = ({value, field}: {value: any, field: PgField}) => {
     return <span title="null">␀</span>;
   }
   else if (Array.isArray(value)) {
-    // let children = [{value.map((child, index) => <Cell key={index} value={child} field={field} />)}];
+    // const children = [{value.map((child, index) => <Cell key={index} value={child} field={field} />)}];
     // return <span className="array">{children}</span>;
     return <span className="array">{JSON.stringify(value)}</span>;
   }
@@ -90,7 +91,7 @@ function copyTable(rows: any[][], tsv = rows.map(cells => cells.join('\t')).join
   document.body.removeChild(textArea);
 }
 
-interface QueryResultProps extends PgQueryResult<any> {
+interface QueryResultProps extends QueryResult<any> {
   sql?: string;
   totalRowCount?: number | string;
   timeElapsed?: number;
@@ -130,8 +131,11 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
     // find the interesting fields, i.e., those where the values in each row are
     // not all the same
     const extendedFields = fields.map(field => {
-      let prototypeValue = rows[0][field.name];
-      let informative = rows.some(row => row[field.name] !== prototypeValue);
+      const prototypeValue = rows[0][field.name];
+      // TODO: allow short-circuiting if global config disables auto-hiding
+      // uninformative fields (which will have to be in a cookie or stored on
+      // the server somewhere for isomorphic rendering to work properly)
+      const informative = rows.some(row => row[field.name] !== prototypeValue);
       return Object.assign({informative}, field);
     });
     const informativeFields = extendedFields.filter(field => field.informative);
@@ -168,7 +172,7 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
           <h3>Uninformative fields (identical for all rows)</h3>
           <ul>
             {uninformativeFields.map(field => {
-              let prototypeValue = rows[0][field.name];
+              const prototypeValue = rows[0][field.name];
               return (
                 <li key={field.name}>
                   <b>{field.name}</b>: <Cell value={prototypeValue} field={field} />

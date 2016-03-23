@@ -7,7 +7,6 @@ pg/components/QueryResult.tsx
 pg/components/Table.tsx
 pg/api.browser.ts
 pg/api.ts
-pg/index.ts
 api.browser.ts
 api.ts
 app.ts

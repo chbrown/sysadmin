@@ -1,8 +1,9 @@
 import * as React from 'react';
 
-import {PgCatalogPgDatabase, PgQueryResult} from '../index';
+import {PgDatabase} from 'pg-meta/pg_catalog';
+import {QueryResult} from 'pg-meta/types';
 import {bind, fetchJSON} from '../../util';
-import QueryResult from './QueryResult';
+import QueryResultView from './QueryResult';
 
 function encodeURIValue(raw: string) {
   return encodeURIComponent(raw).replace(/%20/g, '+');
@@ -14,7 +15,7 @@ interface ReplProps {
   variablesJSON?: string;
 }
 interface ReplState {
-  queryResult?: PgQueryResult<any>;
+  queryResult?: QueryResult<any>;
   errorMessage?: any;
   sql?: string;
   /** the string representation of the variables/arguments passed to the SQL query */
@@ -87,7 +88,7 @@ class Repl extends React.Component<ReplProps, ReplState> {
           </label>
           <div><button>Submit (⌘⏎)</button></div>
         </form>
-        {(this.state.queryResult !== undefined) && <QueryResult {...this.state.queryResult} />}
+        {(this.state.queryResult !== undefined) && <QueryResultView {...this.state.queryResult} />}
         {(this.state.errorMessage !== undefined) &&
           <div className="hpad"><h3>Error</h3><p>{this.state.errorMessage}</p></div>
         }
