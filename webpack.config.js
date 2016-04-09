@@ -9,9 +9,9 @@ module.exports = {
   entry: [
     './app',
     './site.less',
-  ].concat(env === 'production' ? [] : [
+  ].concat(env === 'development-hmr' ? [
     'webpack-hot-middleware/client',
-  ]),
+  ] : []),
   output: {
     path: path.join(__dirname, 'build'),
     filename: 'bundle.js',
@@ -28,6 +28,7 @@ module.exports = {
     new webpack.optimize.UglifyJsPlugin(),
   ] : [
     new webpack.NoErrorsPlugin(),
+  ]).concat(env === 'development-hmr' ? [
     new webpack.HotModuleReplacementPlugin(),
   ]),
   resolve: {
