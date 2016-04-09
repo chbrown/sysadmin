@@ -5,9 +5,9 @@ pg/components/Database.tsx
 pg/components/Repl.tsx
 pg/components/QueryResult.tsx
 pg/components/Table.tsx
-pg/api.browser.ts
+pg/api.web.ts
 pg/api.ts
-api.browser.ts
+api.web.ts
 api.ts
 app.ts
 routes.ts

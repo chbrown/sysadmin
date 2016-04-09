@@ -5,9 +5,9 @@
 /pg/components/Repl.js
 /pg/components/QueryResult.js
 /pg/components/Table.js
-/pg/api.browser.js
+/pg/api.web.js
 /pg/api.js
-/api.browser.js
+/api.web.js
 /api.js
 /app.js
 /routes.js

@@ -30,14 +30,7 @@ module.exports = {
     new webpack.NoErrorsPlugin(),
   ]).concat(env === 'development-hmr' ? [
     new webpack.HotModuleReplacementPlugin(),
-  ]),
-  resolve: {
-    extensions: [ // default: ["", ".webpack.js", ".web.js", ".js"]
-      '',
-      '.browser.js',
-      '.js',
-    ],
-  },
+  ] : []),
   module: {
     loaders: [
       {
