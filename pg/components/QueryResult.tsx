@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import {Field, QueryResult} from 'pg-meta/types';
+import {regtype} from 'pg-meta/pg_catalog';
 import {bind} from '../../util';
 const moment = require('moment');
 
@@ -153,7 +154,7 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
             <thead>
               <tr>
                 {informativeFields.map(field =>
-                  <th key={field.name} title={`${field.dataTypeID}`}>{field.name}</th>
+                  <th key={field.name} title={regtype[field.dataTypeID]}>{field.name}</th>
                 )}
               </tr>
             </thead>
@@ -189,6 +190,7 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
                 <th>name</th>
                 <th>tableID</th>
                 <th>columnID</th>
+                <th>regtype</th>
                 <th>dataTypeID</th>
                 <th>dataTypeSize</th>
                 <th>dataTypeModifier</th>
@@ -201,6 +203,7 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
                   <td>{name}</td>
                   <td>{tableID}</td>
                   <td>{columnID}</td>
+                  <td>{regtype[dataTypeID]}</td>
                   <td>{dataTypeID}</td>
                   <td>{dataTypeSize}</td>
                   <td>{dataTypeModifier}</td>
