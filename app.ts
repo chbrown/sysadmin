@@ -1,12 +1,13 @@
 import {Component, ValidationMap, Children, createElement} from 'react';
 import * as PropTypes from 'prop-types';
 import {render} from 'react-dom';
-import {createHistory, useQueries} from 'history';
+import {createBrowserHistory} from 'history';
+import {parse} from 'query-string';
 import * as urlio from 'urlio';
 
 import routes, {ReactComponent} from './routes';
 
-const history = useQueries(createHistory)();
+const history = createBrowserHistory();
 
 interface ProviderProps {
   children?: ReactComponent<any>[];
@@ -47,7 +48,8 @@ history.listen(location => {
 
   let url = location.pathname;
   let matchingRoute = urlio.parse(routes, {url, method: 'GET'});
-  let req = {params: matchingRoute.params, query: location.query};
+  let query = parse(location.search);
+  let req = {params: matchingRoute.params, query};
   // console.log(`matched route`, matchingRoute, req);
   Promise.resolve(matchingRoute.handler(req)).then(payload => {
     // console.log('rendering', matchingRoute.Component, responseValue);

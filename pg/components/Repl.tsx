@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 
+import {History} from 'history';
 import {PgDatabase} from 'pg-meta/pg_catalog';
 import {QueryResult} from 'pg-meta/types';
 import {bind, fetchJSON} from '../../util';
@@ -51,7 +52,7 @@ class Repl extends React.Component<ReplProps, ReplState> {
     this.setState({errorMessage: undefined});
     let {sql, variablesJSON} = this.state;
     // let's try this: don't persist to URL while typing, but only when running a query (in onSubmit)
-    const {history}: {history: HistoryModule.History} = this.context as any;
+    const {history}: {history: History} = this.context as any;
     const newPath = this.currentPath();
     history.push(newPath);
     let variables: any[] = JSON.parse(variablesJSON);
