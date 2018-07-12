@@ -9,28 +9,29 @@ module.exports = {
   entry: [
     './app',
     './site.less',
-  ].concat(env === 'development-hmr' ? [
-    'webpack-hot-middleware/client',
-  ] : []),
+    ...(env === 'development-hmr' ? ['webpack-hot-middleware/client'] : []),
+  ],
   output: {
     path: path.join(__dirname, 'build'),
     filename: 'bundle.js',
     publicPath: '/build/',
   },
   plugins: [
-    new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]),
-    new ExtractTextPlugin('site.css', {allChunks: true}),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(env),
     }),
-  ].concat(env === 'production' ? [
-    new webpack.optimize.UglifyJsPlugin(),
-  ] : [
-    new webpack.NoErrorsPlugin(),
-  ]).concat(env === 'development-hmr' ? [
-    new webpack.HotModuleReplacementPlugin(),
-  ] : []),
+    new webpack.optimize.OccurenceOrderPlugin(),
+    new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]),
+    new ExtractTextPlugin('site.css', {allChunks: true}),
+    ...(env === 'production' ?
+      [new webpack.optimize.UglifyJsPlugin()] :
+      [new webpack.NoErrorsPlugin()]
+    ),
+    ...(env === 'development-hmr' ?
+      [new webpack.HotModuleReplacementPlugin()] :
+      []
+    ),
+  ],
   module: {
     loaders: [
       {
@@ -45,7 +46,5 @@ module.exports = {
       },
     ],
   },
-  postcss: function() {
-    return [autoprefixer];
-  },
+  postcss: () => [autoprefixer],
 };
