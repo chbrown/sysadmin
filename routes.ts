@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import {ErrorView} from './components/Root';
+import Config from './pg/components/Config';
 import Database from './pg/components/Database';
 import Repl from './pg/components/Repl';
 import QueryResult from './pg/components/QueryResult';
@@ -27,7 +28,7 @@ interface Request {
 export interface Route {
   url: string;
   method: string;
-  handler: (req: {params?: any, query?: any, body?: any, method?: string, pathname?: string}) =>
+  handler: (req: {params?: any, query?: any, body?: any, method?: string, pathname?: string, cookies?: {[index: string]: string}}) =>
     Promise<ResponsePayload<any>> | ResponsePayload<any>;
 }
 
@@ -44,6 +45,13 @@ const routes: Route[] = [
     method: 'POST',
     handler({params, body}) {
       return pgApi[params.name](body).then(props => ({props}));
+    },
+  },
+  {
+    url: '/pg/config',
+    method: 'GET',
+    handler({params, body}) {
+      return Promise.resolve({Component: Config});
     },
   },
   {

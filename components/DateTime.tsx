@@ -1,6 +1,5 @@
 import * as React from 'react';
-// import * as moment from 'moment'; // doesn't work. weird.
-const moment = require('moment');
+import * as moment from 'moment';
 
 const DateTime = ({date, format = 'YYYY-MM-DD h:mm A'}: {date: Date | string, format?: string}) => {
   let text = moment(date).format(format);

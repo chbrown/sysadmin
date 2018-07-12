@@ -1,5 +1,11 @@
 import * as React from 'react';
 import {Relation, RelationAttribute} from 'pg-meta/types';
+import {regtypes} from '../util';
+
+const RelationType = ({atttypid, atttypmod}: RelationAttribute) => {
+  const name = regtypes.get(Number(atttypid));
+  return <span>{name}{(atttypmod !== -1) && <sup>mod={atttypmod}</sup>}</span>;
+};
 
 class Table extends React.Component<Relation, {}> {
   render() {
@@ -28,7 +34,9 @@ class Table extends React.Component<Relation, {}> {
             {attributes.map(attribute =>
               <tr key={attribute.attname}>
                 <td>{attribute.attname}</td>
-                <td>{attribute.atttyp}</td>
+                <td>
+                  <RelationType {...attribute} />
+                </td>
                 <td>{attribute.attnotnull ? 'NOT NULL' : 'NULL'}</td>
                 {showDefault &&
                   <td>

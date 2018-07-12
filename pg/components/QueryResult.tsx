@@ -1,20 +1,9 @@
 import * as React from 'react';
 
 import {Field, QueryResult} from 'pg-meta/types';
-import {regtype} from 'pg-meta/pg_catalog';
 import {bind} from '../../util';
-const moment = require('moment');
-
-const type_groups = {
-  // DATE
-  date: new Set([1082]),
-  // TIME
-  time: new Set([1083]),
-  // TIMESTAMP, TIMESTAMPTZ
-  datetime: new Set([1114, 1184]),
-  // FLOAT4, FLOAT8, MONEY, NUMERIC
-  numeric: new Set([700, 701, 790, 1700]),
-};
+import {regtypes, type_groups} from '../util';
+import * as moment from 'moment';
 
 const Cell = ({value, field}: {value: any, field: Field}) => {
   if (field.name === 'datname') {
@@ -44,12 +33,17 @@ const Cell = ({value, field}: {value: any, field: Field}) => {
   else if (type_groups.time.has(field.dataTypeID)) {
     return <time dateTime={value}>{value}</time>;
   }
-  else if (type_groups.datetime.has(field.dataTypeID)) {
-    return <time dateTime={value}>{moment(value).format('YYYY-MM-DD h:mm A')}</time>;
+  else if (type_groups.timestamp.has(field.dataTypeID)) {
+    // value will still be a raw string, as returned from the PostgreSQL server,
+    // since api.ts resets the typeParser for all the timestamp fields
+    // const formatString = 'YYYY-MM-DD h:mm A';
+    const valueMoment = moment(value);
+    const formatString = 'YYYY-MM-DD HH:mm:ss';
+    return <time dateTime={valueMoment.toISOString()}>{valueMoment.format(formatString)}</time>;
   }
   else if (type_groups.numeric.has(field.dataTypeID)) {
     // TODO: add configuration option for floating point precision
-    return <span className="number">{Number(value).toFixed(3)}</span>;
+    return <span className="number">{Number(value).toFixed(5)}</span>;
   }
   else if (typeof value === 'object') {
     return <span className="object">{JSON.stringify(value)}</span>;
@@ -154,7 +148,7 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
             <thead>
               <tr>
                 {informativeFields.map(field =>
-                  <th key={field.name} title={regtype[field.dataTypeID]}>{field.name}</th>
+                  <th key={field.name} title={regtypes.get(field.dataTypeID)}>{field.name}</th>
                 )}
               </tr>
             </thead>
@@ -203,7 +197,7 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
                   <td>{name}</td>
                   <td>{tableID}</td>
                   <td>{columnID}</td>
-                  <td>{regtype[dataTypeID]}</td>
+                  <td>{regtypes.get(dataTypeID)}</td>
                   <td>{dataTypeID}</td>
                   <td>{dataTypeSize}</td>
                   <td>{dataTypeModifier}</td>
