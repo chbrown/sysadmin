@@ -1,50 +1,53 @@
-var path = require('path');
-var webpack = require('webpack');
-var autoprefixer = require('autoprefixer');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-
-var env = process.env.NODE_ENV || 'development';
+const {resolve} = require('path');
+const webpack = require('webpack');
+const env = process.env.NODE_ENV || 'development';
 
 module.exports = {
-  entry: [
-    './app',
-    './site.less',
-    ...(env === 'development-hmr' ? ['webpack-hot-middleware/client'] : []),
-  ],
+  mode: env,
+  entry: {
+    app: ['babel-polyfill', './app'],
+  },
   output: {
-    path: path.join(__dirname, 'build'),
+    path: resolve(__dirname, 'build'),
     filename: 'bundle.js',
-    publicPath: '/build/',
   },
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(env),
-    }),
-    new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]),
-    new ExtractTextPlugin('site.css', {allChunks: true}),
-    ...(env === 'production' ?
-      [new webpack.optimize.UglifyJsPlugin()] :
-      [new webpack.NoErrorsPlugin()]
-    ),
-    ...(env === 'development-hmr' ?
-      [new webpack.HotModuleReplacementPlugin()] :
-      []
-    ),
   ],
+  resolve: {
+    extensions: ['.web.js', '.js'],
+  },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
-        loaders: ['babel-loader'],
-        include: __dirname,
         exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['env'],
+          },
+        },
       },
       {
         test: /\.less$/,
-        loader: ExtractTextPlugin.extract('style-loader', 'css-loader?minimize!postcss-loader!less-loader'),
+        exclude: /node_modules/,
+        use: [{
+          loader: 'style-loader',
+        }, {
+          loader: 'css-loader',
+        }, {
+          loader: 'post-loader',
+          options: {
+            ident: 'postcss',
+            plugins: () => [
+              require('autoprefixer')(),
+            ],
+          },
+        }, {
+          loader: 'less-loader',
+        }],
       },
     ],
   },
-  postcss: () => [autoprefixer],
 };

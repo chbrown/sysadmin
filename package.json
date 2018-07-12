@@ -16,6 +16,7 @@
   "license": "MIT",
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "dependencies": {
+    "babel-polyfill": "6.26.0",
     "history": "4.7.2",
     "hoist-non-react-statics": "2.5.5",
     "http-extend": "0.1.4",
