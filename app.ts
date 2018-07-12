@@ -1,4 +1,5 @@
-import {Component, PropTypes, ValidationMap, Children, createElement} from 'react';
+import {Component, ValidationMap, Children, createElement} from 'react';
+import * as PropTypes from 'prop-types';
 import {render} from 'react-dom';
 import {createHistory, useQueries} from 'history';
 import * as urlio from 'urlio';

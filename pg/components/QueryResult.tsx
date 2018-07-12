@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 
 import {Field, QueryResult} from 'pg-meta/types';
 import {bind} from '../../util';
@@ -92,11 +93,11 @@ interface QueryResultProps extends QueryResult<any> {
   timeElapsed?: number;
 }
 const QueryResultPropTypes: React.ValidationMap<any> = {
-  fields: React.PropTypes.array.isRequired,
-  rows: React.PropTypes.array.isRequired,
-  sql: React.PropTypes.string,
-  totalRowCount: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
-  timeElapsed: React.PropTypes.number,
+  fields: PropTypes.array.isRequired,
+  rows: PropTypes.array.isRequired,
+  sql: PropTypes.string,
+  totalRowCount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  timeElapsed: PropTypes.number,
 };
 
 /**

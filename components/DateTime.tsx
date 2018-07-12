@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import * as moment from 'moment';
 
 const DateTime = ({date, format = 'YYYY-MM-DD h:mm A'}: {date: Date | string, format?: string}) => {
@@ -6,7 +7,7 @@ const DateTime = ({date, format = 'YYYY-MM-DD h:mm A'}: {date: Date | string, fo
   return <time dateTime={date instanceof Date ? date.toISOString() : date}>{text}</time>;
 };
 DateTime['propTypes'] = {
-  date: React.PropTypes.oneOfType([React.PropTypes.object, React.PropTypes.string]).isRequired,
-  format: React.PropTypes.string,
+  date: PropTypes.oneOfType([PropTypes.object, PropTypes.string]).isRequired,
+  format: PropTypes.string,
 };
 export default DateTime;

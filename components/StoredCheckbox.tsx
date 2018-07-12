@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 
 import {bind} from '../util';
 
@@ -26,8 +27,8 @@ class UnconnectedStoredCheckbox extends React.Component<CheckboxProps, {}> {
     );
   }
   static propTypes: React.ValidationMap<any> = {
-    name: React.PropTypes.string.isRequired,
-    label: React.PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
     cookies: CookiesPropTypes,
   }
 }

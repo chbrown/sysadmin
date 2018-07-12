@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import {Relation, RelationAttribute} from 'pg-meta/types';
 
 import {bind} from '../../util';
@@ -41,7 +42,7 @@ class Database extends React.Component<DatabaseProps, {}> {
     );
   }
   static propTypes: React.ValidationMap<any> = {
-    relations: React.PropTypes.array.isRequired,
+    relations: PropTypes.array.isRequired,
     cookies: CookiesPropTypes,
   };
 }

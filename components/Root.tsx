@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 
 export const ErrorView = ({message, stack}) => (
   <div className="hpad">
@@ -26,6 +27,6 @@ const Root = ({children}) => (
   </html>
 );
 Root['propTypes'] = {
-  children: React.PropTypes.any.isRequired,
+  children: PropTypes.any.isRequired,
 };
 export default Root;

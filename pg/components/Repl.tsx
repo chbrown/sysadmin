@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 
 import {PgDatabase} from 'pg-meta/pg_catalog';
 import {QueryResult} from 'pg-meta/types';
@@ -96,8 +97,8 @@ class Repl extends React.Component<ReplProps, ReplState> {
     );
   }
   static contextTypes = {
-    history: React.PropTypes.object,
-    location: React.PropTypes.object,
+    history: PropTypes.object,
+    location: PropTypes.object,
   }
   static defaultProps = {
     sql: '',

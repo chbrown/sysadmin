@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import {Relation, RelationAttribute} from 'pg-meta/types';
 import {regtypes} from '../util';
 
@@ -56,9 +57,9 @@ class Table extends React.Component<Relation, {}> {
     );
   }
   static propTypes: React.ValidationMap<any> = {
-    relkind: React.PropTypes.string.isRequired,
-    relname: React.PropTypes.string.isRequired,
-    attributes: React.PropTypes.array.isRequired,
+    relkind: PropTypes.string.isRequired,
+    relname: PropTypes.string.isRequired,
+    attributes: PropTypes.array.isRequired,
   };
 }
 

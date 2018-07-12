@@ -3,7 +3,8 @@ import * as urlio from 'urlio';
 import {logger, Level} from 'loge';
 import {inspect} from 'util';
 import {addBody, addXhr, addUrlObj, addCookies} from 'http-extend';
-import {Props, Component, ComponentClass, StatelessComponent, Children, ValidationMap, PropTypes, createElement} from 'react';
+import {Props, Component, ComponentClass, StatelessComponent, Children, ValidationMap, createElement} from 'react';
+import * as PropTypes from 'prop-types';
 import {renderToString, renderToStaticMarkup} from 'react-dom/server';
 
 import routes, {Route, ResponsePayload, ReactComponent} from './routes';

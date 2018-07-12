@@ -1,4 +1,5 @@
-import {PropTypes, Component, ComponentClass, createElement} from 'react';
+import {Component, ComponentClass, createElement} from 'react';
+import * as PropTypes from 'prop-types';
 const hoistStatics = require('hoist-non-react-statics');
 
 export interface CookieObject {
