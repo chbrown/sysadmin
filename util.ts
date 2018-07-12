@@ -1,17 +1,17 @@
-export const bind: MethodDecorator = <T extends Function>(target: Object,
-                                                          propertyKey: string | symbol,
-                                                          descriptor: TypedPropertyDescriptor<T>) => {
+export function bind<T extends Function>(_target: object,
+                                         propertyKey: string | symbol,
+                                         descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void {
   return {
     configurable: true,
-    get() {
+    get(this: T): T {
       const value = descriptor.value.bind(this);
       Object.defineProperty(this, propertyKey, {
         value,
         configurable: true,
-        writable: true
+        writable: true,
       });
       return value;
-    }
+    },
   };
 }
 
