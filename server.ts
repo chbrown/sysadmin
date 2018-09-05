@@ -101,7 +101,7 @@ function formatAddress(address: string | AddressInfo): string {
   if (typeof address == 'string') {
     return address;
   }
-  return `http://${address.address}:${address.port}`;
+  return `${address.address}:${address.port}`;
 }
 
 export const defaultPort = 7972;
