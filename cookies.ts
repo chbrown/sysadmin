@@ -13,7 +13,7 @@ export interface CookieOptions {
   secure?: boolean;
 }
 
-export const CookiesPropTypes = PropTypes.object.isRequired;
+export const CookiesPropTypes = PropTypes.objectOf(PropTypes.string).isRequired;
 
 export interface ConnectedCookiesProps {
   cookies?: CookieObject;
