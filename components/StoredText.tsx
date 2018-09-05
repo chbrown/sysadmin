@@ -28,7 +28,7 @@ class UnconnectedStoredText extends React.Component<TextProps, {}> {
       </label>
     );
   }
-  static propTypes: React.ValidationMap<any> = {
+  static propTypes: React.ValidationMap<TextProps> = {
     name: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     cookies: CookiesPropTypes,

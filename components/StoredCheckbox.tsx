@@ -26,7 +26,7 @@ class UnconnectedStoredCheckbox extends React.Component<CheckboxProps, {}> {
       </label>
     );
   }
-  static propTypes: React.ValidationMap<any> = {
+  static propTypes: React.ValidationMap<CheckboxProps> = {
     name: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     cookies: CookiesPropTypes,

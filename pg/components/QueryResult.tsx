@@ -87,18 +87,15 @@ function copyTable(rows: any[][], tsv = rows.map(cells => cells.join('\t')).join
   document.body.removeChild(textArea);
 }
 
-interface QueryResultProps extends QueryResult<any> {
+interface QueryResultProps {
+  // is there some way to say something like:
+  //   Pick<QueryResult<any>, 'rows' | 'fields'>
+  rows: any[];
+  fields: Field[];
   sql?: string;
   totalRowCount?: number | string;
   timeElapsed?: number;
 }
-const QueryResultPropTypes: React.ValidationMap<any> = {
-  fields: PropTypes.array.isRequired,
-  rows: PropTypes.array.isRequired,
-  sql: PropTypes.string,
-  totalRowCount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  timeElapsed: PropTypes.number,
-};
 
 /**
 Wrapper Component with shouldComponentUpdate until stateless functional
@@ -211,7 +208,13 @@ class QueryResultTable extends React.Component<QueryResultProps, {}> {
       </div>
     );
   }
-  static propTypes = QueryResultPropTypes;
+  static propTypes: React.ValidationMap<QueryResultProps> = {
+    fields: PropTypes.array.isRequired,
+    rows: PropTypes.array.isRequired,
+    sql: PropTypes.string,
+    totalRowCount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    timeElapsed: PropTypes.number,
+  };
 }
 
 export default QueryResultTable;

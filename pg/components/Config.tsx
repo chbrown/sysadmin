@@ -38,7 +38,7 @@ class Config extends React.Component<ConfigProps, {}> {
       </div>
     );
   }
-  static propTypes: React.ValidationMap<any> = {
+  static propTypes: React.ValidationMap<ConfigProps> = {
     cookies: CookiesPropTypes,
   };
 }

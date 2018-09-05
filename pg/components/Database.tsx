@@ -41,7 +41,7 @@ class Database extends React.Component<DatabaseProps, {}> {
       </div>
     );
   }
-  static propTypes: React.ValidationMap<any> = {
+  static propTypes: React.ValidationMap<DatabaseProps> = {
     relations: PropTypes.array.isRequired,
     cookies: CookiesPropTypes,
   };
