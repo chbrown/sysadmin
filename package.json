@@ -9,10 +9,7 @@
     "postgresql"
   ],
   "homepage": "https://github.com/chbrown/sysadmin",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chbrown/sysadmin.git"
-  },
+  "repository": "github:chbrown/sysadmin",
   "license": "MIT",
   "author": "Christopher Brown <io@henrian.com> (http://henrian.com)",
   "dependencies": {
