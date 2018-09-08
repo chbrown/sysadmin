@@ -1,5 +1,4 @@
 import {IncomingMessage, ServerResponse, createServer} from 'http';
-import {AddressInfo} from 'net';
 import * as urlio from 'urlio';
 import {logger, Level} from 'loge';
 import {inspect} from 'util';
@@ -97,13 +96,6 @@ function httpHandler(req: IncomingMessage, res: ServerResponse): void {
   });
 }
 
-function formatAddress(address: string | AddressInfo): string {
-  if (typeof address == 'string') {
-    return address;
-  }
-  return `${address.address}:${address.port}`;
-}
-
 export const defaultPort = 7972;
 export const defaultHostname = '127.0.0.1';
 /**
@@ -119,7 +111,9 @@ export function start(port: number = defaultPort, hostname: string = defaultHost
     httpHandler(req, res);
   });
   server.on('listening', () => {
-    console.log(`server listening on http://${formatAddress(server.address())}`);
+    const address = server.address();
+    const addressString = typeof address == 'string' ? address : `${address.address}:${address.port}`;
+    console.log(`server listening on http://${addressString}`);
   });
   server.listen(port, hostname);
 }
