@@ -8,11 +8,11 @@ System Administration Web UI
 ### Development
 
     # start the webpack client-side compiler process
-    make dev
+    npx prepack
     # start the typescript server-side compiler process
-    node_modules/.bin/tsc -w
+    npx tsc -w
     # start the server
-    make server
+    npm start
 
 
 ## License
