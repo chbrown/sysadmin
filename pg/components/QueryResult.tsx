@@ -4,7 +4,6 @@ import * as PropTypes from 'prop-types';
 import {Field, QueryResult} from 'pg-meta/types';
 import {bind} from '../../util';
 import {regtypes, type_groups} from '../util';
-import * as moment from 'moment';
 
 const Cell = ({value, field}: {value: any, field: Field}) => {
   if (field.name === 'datname') {
@@ -28,8 +27,9 @@ const Cell = ({value, field}: {value: any, field: Field}) => {
     return <span className="array">{JSON.stringify(value)}</span>;
   }
   else if (type_groups.date.has(field.dataTypeID)) {
-    // moment parsing and formatting is vacuous in this case
-    return <time dateTime={value}>{moment(value).format('YYYY-MM-DD')}</time>;
+    const date = new Date(value);
+    const dateString = date.toISOString().slice(0, 10);
+    return <time dateTime={value}>{dateString}</time>;
   }
   else if (type_groups.time.has(field.dataTypeID)) {
     return <time dateTime={value}>{value}</time>;
@@ -37,10 +37,11 @@ const Cell = ({value, field}: {value: any, field: Field}) => {
   else if (type_groups.timestamp.has(field.dataTypeID)) {
     // value will still be a raw string, as returned from the PostgreSQL server,
     // since api.ts resets the typeParser for all the timestamp fields
-    // const formatString = 'YYYY-MM-DD h:mm A';
-    const valueMoment = moment(value);
-    const formatString = 'YYYY-MM-DD HH:mm:ss';
-    return <time dateTime={valueMoment.toISOString()}>{valueMoment.format(formatString)}</time>;
+    const date = new Date(value);
+    const isoString = date.toISOString();
+    const dateString = isoString.slice(0, 10);
+    const timeString = isoString.slice(11, 19);
+    return <time dateTime={isoString}>{dateString} {timeString}</time>;
   }
   else if (type_groups.numeric.has(field.dataTypeID)) {
     // TODO: add configuration option for floating point precision
