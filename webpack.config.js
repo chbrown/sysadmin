@@ -11,9 +11,6 @@ module.exports = {
     path: resolve(__dirname, 'build'),
     filename: 'bundle.js',
   },
-  plugins: [
-    new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]),
-  ],
   resolve: {
     extensions: ['.web.js', '.js'],
   },
