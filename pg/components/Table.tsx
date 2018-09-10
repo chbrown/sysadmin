@@ -8,7 +8,7 @@ const RelationType = ({atttypid, atttypmod}: RelationAttribute) => {
   return <span>{name}{(atttypmod !== -1) && <sup>mod={atttypmod}</sup>}</span>;
 };
 
-class Table extends React.Component<Relation, {}> {
+class Table extends React.Component<Relation> {
   render() {
     const {relname, relkind, attributes, constraints} = this.props;
     const showDefault = attributes.some(attribute => attribute.adsrc !== null);

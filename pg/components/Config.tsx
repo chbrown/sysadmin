@@ -9,7 +9,7 @@ import StoredText from '../../components/StoredText';
 const relkinds = ['ordinary table', 'sequence', 'index', 'view'];
 
 interface ConfigProps extends ConnectedCookiesProps {}
-class Config extends React.Component<ConfigProps, {}> {
+class Config extends React.Component<ConfigProps> {
   render() {
     const {cookies} = this.props;
     return (

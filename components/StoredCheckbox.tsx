@@ -10,7 +10,7 @@ interface CheckboxProps extends ConnectedCookiesProps {
   name: string;
   label: string;
 }
-class UnconnectedStoredCheckbox extends React.Component<CheckboxProps, {}> {
+class UnconnectedStoredCheckbox extends React.Component<CheckboxProps> {
   @bind
   onChange(ev: React.FormEvent) {
     const {checked} = ev.target as HTMLInputElement;

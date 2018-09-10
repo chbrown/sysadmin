@@ -12,7 +12,7 @@ import Table from './Table';
 interface DatabaseProps extends ConnectedCookiesProps {
   relations: Relation[];
 }
-class Database extends React.Component<DatabaseProps, {}> {
+class Database extends React.Component<DatabaseProps> {
   render() {
     const {relations, cookies} = this.props;
     const relkinds = new Set(relations.map(({relkind}) => relkind));

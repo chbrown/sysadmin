@@ -1,9 +1,10 @@
-function post(url: string, body: any) {
-  return fetch(url, {
+async function post(url: string, body: any) {
+  const res = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(body),
-  }).then(res => res.json());
+  });
+  return res.json();
 }
 
 // How ugly and concise! A Proxy would be better but Chrome doesn't support it.

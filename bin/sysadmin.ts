@@ -4,7 +4,7 @@ import * as optimist from 'optimist';
 import {defaultPort, defaultHostname, start} from '../server';
 
 export function main() {
-  let argvparser = optimist
+  const argvparser = optimist
   .usage('Usage: sysadmin')
   .describe({
     help: 'print this help message',

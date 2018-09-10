@@ -1,7 +1,7 @@
 import {CookieOptions} from './cookies';
 
 export function setCookie(name: string, value: string, options: CookieOptions = {}): void {
-  const one_month = new Date(new Date().getTime() + 31*24*60*60*1000);
+  const one_month = new Date(new Date().getTime() + 31 * 24 * 60 * 60 * 1000);
   const {expires = one_month, path = '/', domain, secure} = options;
   const pairs: Array<[string, string] | [string]> = [[encodeURIComponent(name), encodeURIComponent(value)]];
   if (expires !== undefined) {

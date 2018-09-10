@@ -10,7 +10,7 @@ interface TextProps extends ConnectedCookiesProps {
   name: string;
   label: string;
 }
-class UnconnectedStoredText extends React.Component<TextProps, {}> {
+class UnconnectedStoredText extends React.Component<TextProps> {
   @bind
   onChange(ev: React.FormEvent) {
     const {value} = ev.target as HTMLInputElement;

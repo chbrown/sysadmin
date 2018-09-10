@@ -13,15 +13,15 @@ interface ProviderProps {
   children?: ReactComponent<any>[];
   location: any;
 }
-class Provider extends Component<ProviderProps, {}> {
+class Provider extends Component<ProviderProps> {
   cookies: {[index: string]: string};
   constructor(props: ProviderProps, context) {
     super(props, context);
     this.cookies = {};
     document.cookie.split(/;\s*/).forEach(cookieString => {
-      var splitAt = cookieString.indexOf('=');
-      var name = cookieString.slice(0, splitAt);
-      var value = cookieString.slice(splitAt + 1);
+      const splitAt = cookieString.indexOf('=');
+      const name = cookieString.slice(0, splitAt);
+      const value = cookieString.slice(splitAt + 1);
       this.cookies[name] = decodeURIComponent(value);
     });
   }
@@ -46,10 +46,10 @@ class Provider extends Component<ProviderProps, {}> {
 history.listen(location => {
   console.log('history:listen', location.pathname);
 
-  let url = location.pathname;
-  let matchingRoute = urlio.parse(routes, {url, method: 'GET'});
-  let query = parse(location.search);
-  let req = {params: matchingRoute.params, query};
+  const url = location.pathname;
+  const matchingRoute = urlio.parse(routes, {url, method: 'GET'});
+  const query = parse(location.search);
+  const req = {params: matchingRoute.params, query};
   // console.log(`matched route`, matchingRoute, req);
   Promise.resolve(matchingRoute.handler(req)).then(payload => {
     // console.log('rendering', matchingRoute.Component, responseValue);

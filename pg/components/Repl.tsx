@@ -30,7 +30,7 @@ class Repl extends React.Component<ReplProps, ReplState> {
     this.state = {sql, variablesJSON};
   }
   currentPath() {
-    let {sql, variablesJSON} = this.state;
+    const {sql, variablesJSON} = this.state;
     return `/pg/${this.props.database}/repl/?sql=${encodeURIValue(sql)}&variablesJSON=${encodeURIValue(variablesJSON)}`;
   }
   @bind
@@ -50,12 +50,12 @@ class Repl extends React.Component<ReplProps, ReplState> {
   onSubmit(ev: React.FormEvent) {
     ev.preventDefault(); // prevent form submission
     this.setState({errorMessage: undefined});
-    let {sql, variablesJSON} = this.state;
+    const {sql, variablesJSON} = this.state;
     // let's try this: don't persist to URL while typing, but only when running a query (in onSubmit)
-    const {history}: {history: History} = this.context as any;
+    const {history}: {history: History} = this.context;
     const newPath = this.currentPath();
     history.push(newPath);
-    let variables: any[] = JSON.parse(variablesJSON);
+    const variables: any[] = JSON.parse(variablesJSON);
     fetchJSON('../query', {method: 'POST', body: {sql, variables}})
     .then(response => {
       this.setState({errorMessage: undefined, queryResult: response.content});
@@ -63,7 +63,7 @@ class Repl extends React.Component<ReplProps, ReplState> {
     .catch(error => {
       let errorMessage = error.message;
       if (error.response && error.response.content) {
-        errorMessage += ': ' + error.response.content.message;
+        errorMessage = `${errorMessage}: ${error.response.content.message}`;
       }
       this.setState({errorMessage, queryResult: undefined});
     });

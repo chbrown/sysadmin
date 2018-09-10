@@ -19,13 +19,11 @@ export interface ConnectedCookiesProps {
   cookies?: CookieObject;
 }
 
-export interface ComponentDecorator<P> {
-  (WrappedComponent: ComponentClass<P>): ComponentClass<P>;
-}
+export type ComponentDecorator<P> = (WrappedComponent: ComponentClass<P>) => ComponentClass<P>;
 
 export function connectCookies<P>(): ComponentDecorator<P> {
   return function wrapWithConnect(WrappedComponent: ComponentClass<P>): ComponentClass<P> {
-    class ConnectCookies extends Component<P, {}> {
+    class ConnectCookies extends Component<P> {
       cookies: CookieObject;
       constructor(props: P, context: any) {
         super(props, context);

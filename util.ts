@@ -15,14 +15,19 @@ export function bind<T extends Function>(_target: object,
   };
 }
 
+export class ResponseError extends Error {
+  constructor(public response: Response) {
+    super(`HTTP ${response.status}`);
+  }
+}
+
 /**
 Check that a fetch() Response has a successful status code and turn it into a
 rejected Promise if not.
 */
-export function assertSuccess<R extends Response>(response: R): Promise<R> {
+export async function assertSuccess<R extends Response>(response: R): Promise<R> {
   if (response.status < 200 || response.status > 299) {
-    let error = new Error(`HTTP ${response.status}`);
-    error['response'] = response;
+    const error = new ResponseError(response);
     return Promise.reject<R>(error);
   }
   return Promise.resolve(response);
@@ -32,7 +37,7 @@ export function assertSuccess<R extends Response>(response: R): Promise<R> {
 We can't write the .body property of a Response because it's a read-only getter,
 so we use .content instead.
 */
-export function addJSON<R extends Response>(response: R): Promise<R & {content: any}> {
+export async function addJSON<R extends Response>(response: R): Promise<R & {content: any}> {
   return response.json().then(content => Object.assign(response, {content}));
 }
 
@@ -42,8 +47,8 @@ JSON-stringifies the body,
 rejects if the responses sent a unsuccessfuly status code,
 and parses JSON from the response.
 */
-export function fetchJSON(url: string, {method = 'GET', body}: {method: string, body?: any}) {
-  let init: RequestInit = {method, headers: {'Content-Type': 'application/json'}};
+export async function fetchJSON(url: string, {method = 'GET', body}: {method: string, body?: any}) {
+  const init: RequestInit = {method, headers: {'Content-Type': 'application/json'}};
   if (body !== undefined) {
     init.body = JSON.stringify(body);
   }

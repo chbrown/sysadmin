@@ -3,17 +3,12 @@ import * as urlio from 'urlio';
 import {logger, Level} from 'loge';
 import {inspect} from 'util';
 import {addBody, addXhr, addUrlObj, addCookies} from 'http-extend';
-import {Props, Component, ComponentClass, StatelessComponent, Children, ValidationMap, createElement} from 'react';
+import {Component, ComponentClass, StatelessComponent, Children, ValidationMap, createElement} from 'react';
 import * as PropTypes from 'prop-types';
 import {renderToString, renderToStaticMarkup} from 'react-dom/server';
 
 import routes, {Route, ResponsePayload, ReactComponent} from './routes';
 import Root, {ErrorView} from './components/Root';
-
-/**
-A generic version of the standard React.ReactType type (which is also a union).
-*/
-type ReactType<P extends Props<any>> = string | ComponentClass<P> | StatelessComponent<P>;
 
 /**
 Uses `routes` global.
@@ -30,7 +25,7 @@ function addRoute<Req extends {method?: string, pathname: string}>(req: Req) {
 interface ProviderProps {
   cookies: {[index: string]: string};
 }
-class Provider extends Component<ProviderProps, {}> {
+class Provider extends Component<ProviderProps> {
   getChildContext() {
     return {cookies: this.props.cookies};
   }
@@ -42,7 +37,7 @@ class Provider extends Component<ProviderProps, {}> {
   }
 }
 
-const _layoutPlaceholder = '#yield#';
+const LAYOUT_PLACEHOLDER = '#yield#';
 
 function httpHandler(req: IncomingMessage, res: ServerResponse): void {
   Promise.resolve(req).then(addBody).then(addXhr).then(addUrlObj).then(addCookies).then(addRoute)
@@ -51,8 +46,8 @@ function httpHandler(req: IncomingMessage, res: ServerResponse): void {
     return Promise.resolve(req.route.handler(req))
     .catch(error => {
       // last-ditch effort to recover from errors while still formatting them adaptively
-      let props = {message: error.message, stack: error.stack};
-      let payload: ResponsePayload<any> = {props, Component: ErrorView, statusCode: 400};
+      const props = {message: error.message, stack: error.stack};
+      const payload: ResponsePayload<any> = {props, Component: ErrorView, statusCode: 400};
       return payload;
     })
     .then(payload => ({req, payload}));
@@ -75,10 +70,10 @@ function httpHandler(req: IncomingMessage, res: ServerResponse): void {
       const element = createElement(payload.Component, payload.props);
       const providerElement = createElement(Provider, {cookies: req.cookies}, element);
       const providerElementHtml = renderToString(providerElement);
-      const layout = createElement(Root, payload.props, _layoutPlaceholder);
+      const layout = createElement(Root, payload.props, LAYOUT_PLACEHOLDER);
       const layoutHtml = renderToStaticMarkup(layout);
-      const html = '<!DOCTYPE html>' + layoutHtml.replace(_layoutPlaceholder, providerElementHtml);
-      res.end(html);
+      const html = layoutHtml.replace(LAYOUT_PLACEHOLDER, providerElementHtml);
+      res.end(`<!DOCTYPE html>${html}`);
     }
     else if (payload.props) {
       res.setHeader('Content-Type', 'application/json');
@@ -104,7 +99,7 @@ Time all requests and send them directly over to httpHandler.
 */
 export function start(port: number = defaultPort, hostname: string = defaultHostname) {
   const server = createServer((req, res) => {
-    var started = Date.now();
+    const started = Date.now();
     res.on('finish', () => {
       logger.info('%s %s [%d ms]', req.method, req.url, Date.now() - started);
     });

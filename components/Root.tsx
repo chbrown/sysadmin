@@ -9,7 +9,7 @@ export const ErrorView = ({message, stack}) => (
   </div>
 );
 
-const Root = ({children}) => (
+const Root: React.StatelessComponent = ({children}) => (
   <html>
     <head>
       <meta charSet="utf-8" />
@@ -26,7 +26,7 @@ const Root = ({children}) => (
     </body>
   </html>
 );
-Root['propTypes'] = {
+Root.propTypes = {
   children: PropTypes.any.isRequired,
 };
 export default Root;

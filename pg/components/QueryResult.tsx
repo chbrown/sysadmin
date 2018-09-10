@@ -74,9 +74,9 @@ function copyTable(rows: any[][], tsv = rows.map(cells => cells.join('\t')).join
 
   function onCopy(ev) {
     ev.preventDefault();
-    ev['clipboardData'].setData('application/json', rows);
-    ev['clipboardData'].setData('text/tab-separated-values', tsv);
-    ev['clipboardData'].setData('Text', tsv);
+    ev.clipboardData.setData('application/json', rows);
+    ev.clipboardData.setData('text/tab-separated-values', tsv);
+    ev.clipboardData.setData('Text', tsv);
   }
   window.addEventListener('copy', onCopy);
   const success = document.execCommand('copy');
@@ -102,7 +102,7 @@ interface QueryResultProps {
 Wrapper Component with shouldComponentUpdate until stateless functional
 components get smarter should-update heuristics.
 */
-class QueryResultTable extends React.Component<QueryResultProps, {}> {
+class QueryResultTable extends React.Component<QueryResultProps> {
   shouldComponentUpdate(nextProps) {
     const fieldsChanged = nextProps.fields !== this.props.fields;
     const rowsChanged = nextProps.rows !== this.props.rows;

@@ -38,13 +38,18 @@ const short: Intl.DateTimeFormatOptions = {
 
 const formats = {full, long, medium, short}
 
-const DateTime = ({date, format = 'medium'}: {date: Date | string, format?: string}) => {
+interface DateTimeProps {
+  date: Date | string;
+  format?: string;
+}
+
+const DateTime: React.StatelessComponent<DateTimeProps> = ({date, format = 'medium'}: DateTimeProps) => {
   const dateObject = new Date(date);
   const localeString = dateObject.toLocaleString('en-US', formats[format]);
   return <time dateTime={dateObject.toISOString()}>{localeString}</time>;
 };
-DateTime['propTypes'] = {
-  date: PropTypes.oneOfType([PropTypes.object, PropTypes.string]).isRequired,
+DateTime.propTypes = {
+  date: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]).isRequired,
   format: PropTypes.string,
 };
 export default DateTime;
