@@ -50,7 +50,7 @@
     "webpack-cli": "3.1.0"
   },
   "bin": {
-    "sysadmin": "bin/sysadmin.js"
+    "sysadmin": "server.js"
   },
   "scripts": {
     "prepare": "tsc",
