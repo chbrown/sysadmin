@@ -1,24 +1,24 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
+import * as React from 'react'
+import * as PropTypes from 'prop-types'
 
-import {bind} from '../util';
+import {bind} from '../util'
 
-import {connectCookies, ConnectedCookiesProps, CookiesPropTypes} from '../cookies';
-import {setCookie} from '../cookies-imp';
+import {connectCookies, ConnectedCookiesProps, CookiesPropTypes} from '../cookies'
+import {setCookie} from '../cookies-imp'
 
 interface TextProps extends ConnectedCookiesProps {
-  name: string;
-  label: string;
+  name: string
+  label: string
 }
 class UnconnectedStoredText extends React.Component<TextProps> {
   @bind
   onChange(ev: React.FormEvent) {
-    const {value} = ev.target as HTMLInputElement;
-    setCookie(this.props.name, value);
+    const {value} = ev.target as HTMLInputElement
+    setCookie(this.props.name, value)
   }
   render() {
-    const {name, label, cookies} = this.props;
-    const value = cookies[this.props.name];
+    const {name, label, cookies} = this.props
+    const value = cookies[this.props.name]
     return (
       <label>
         <div>
@@ -26,7 +26,7 @@ class UnconnectedStoredText extends React.Component<TextProps> {
         </div>
         <input type="text" onChange={this.onChange} defaultValue={value} />
       </label>
-    );
+    )
   }
   static propTypes: React.ValidationMap<TextProps> = {
     name: PropTypes.string.isRequired,
@@ -34,6 +34,6 @@ class UnconnectedStoredText extends React.Component<TextProps> {
     cookies: CookiesPropTypes,
   }
 }
-const StoredText = connectCookies<TextProps>()(UnconnectedStoredText);
+const StoredText = connectCookies<TextProps>()(UnconnectedStoredText)
 
-export default StoredText;
+export default StoredText

@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
+import * as React from 'react'
+import * as PropTypes from 'prop-types'
 
 export const ErrorView = ({message, stack}) => (
   <div className="hpad">
@@ -7,7 +7,7 @@ export const ErrorView = ({message, stack}) => (
     <h3 title="message">{message}</h3>
     <pre title="stack">{stack}</pre>
   </div>
-);
+)
 
 const Root: React.StatelessComponent = ({children}) => (
   <html>
@@ -25,8 +25,8 @@ const Root: React.StatelessComponent = ({children}) => (
       <script src="/build/bundle.js"></script>
     </body>
   </html>
-);
+)
 Root.propTypes = {
   children: PropTypes.any.isRequired,
-};
-export default Root;
+}
+export default Root

@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
+import * as React from 'react'
+import * as PropTypes from 'prop-types'
 
 const full: Intl.DateTimeFormatOptions = {
   weekday:      'long',
@@ -39,17 +39,17 @@ const short: Intl.DateTimeFormatOptions = {
 const formats = {full, long, medium, short}
 
 interface DateTimeProps {
-  date: Date | string;
-  format?: string;
+  date: Date | string
+  format?: string
 }
 
 const DateTime: React.StatelessComponent<DateTimeProps> = ({date, format = 'medium'}: DateTimeProps) => {
-  const dateObject = new Date(date);
-  const localeString = dateObject.toLocaleString('en-US', formats[format]);
-  return <time dateTime={dateObject.toISOString()}>{localeString}</time>;
-};
+  const dateObject = new Date(date)
+  const localeString = dateObject.toLocaleString('en-US', formats[format])
+  return <time dateTime={dateObject.toISOString()}>{localeString}</time>
+}
 DateTime.propTypes = {
   date: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]).isRequired,
   format: PropTypes.string,
-};
-export default DateTime;
+}
+export default DateTime

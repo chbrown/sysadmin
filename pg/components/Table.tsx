@@ -1,20 +1,20 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import {Relation, RelationAttribute} from 'pg-meta/types';
-import {regtypes} from '../util';
+import * as React from 'react'
+import * as PropTypes from 'prop-types'
+import {Relation, RelationAttribute} from 'pg-meta/types'
+import {regtypes} from '../util'
 
 const RelationType = ({atttypid, atttypmod}: RelationAttribute) => {
-  const name = regtypes.get(Number(atttypid));
-  return <span>{name}{(atttypmod !== -1) && <sup>mod={atttypmod}</sup>}</span>;
-};
+  const name = regtypes.get(Number(atttypid))
+  return <span>{name}{(atttypmod !== -1) && <sup>mod={atttypmod}</sup>}</span>
+}
 
 class Table extends React.Component<Relation> {
   render() {
-    const {relname, relkind, attributes, constraints} = this.props;
-    const showDefault = attributes.some(attribute => attribute.adsrc !== null);
+    const {relname, relkind, attributes, constraints} = this.props
+    const showDefault = attributes.some(attribute => attribute.adsrc !== null)
     // constraints might be null if there were none
-    const refConstraints = (constraints || []).filter(constraint => constraint.contype == 'foreign key constraint');
-    const showRefs = refConstraints.length > 0;
+    const refConstraints = (constraints || []).filter(constraint => constraint.contype == 'foreign key constraint')
+    const showRefs = refConstraints.length > 0
     return (
       <div className="pg-table">
         <header className="flex-fill">
@@ -54,13 +54,13 @@ class Table extends React.Component<Relation> {
           </tbody>
         </table>
       </div>
-    );
+    )
   }
   static propTypes: React.ValidationMap<any> = {
     relkind: PropTypes.string.isRequired,
     relname: PropTypes.string.isRequired,
     attributes: PropTypes.array.isRequired,
-  };
+  }
 }
 
-export default Table;
+export default Table

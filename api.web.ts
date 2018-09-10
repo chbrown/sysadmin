@@ -2,7 +2,7 @@
 
 const api = {
   async readFile({path}: {path: string}) {
-    return Promise.resolve(null);
+    return Promise.resolve(null)
   },
-};
-export default api;
+}
+export default api

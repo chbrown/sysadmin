@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import {logger, Level} from 'loge';
-import * as optimist from 'optimist';
-import {defaultPort, defaultHostname, start} from '../server';
+import {logger, Level} from 'loge'
+import * as optimist from 'optimist'
+import {defaultPort, defaultHostname, start} from '../server'
 
 export function main() {
   const argvparser = optimist
@@ -21,22 +21,22 @@ export function main() {
     port: defaultPort,
     hostname: defaultHostname,
   })
-  .boolean(['help', 'verbose', 'version']);
+  .boolean(['help', 'verbose', 'version'])
 
-  const argv = argvparser.argv;
-  logger.level = argv.verbose ? Level.debug : Level.info;
+  const argv = argvparser.argv
+  logger.level = argv.verbose ? Level.debug : Level.info
 
   if (argv.help) {
-    argvparser.showHelp();
+    argvparser.showHelp()
   }
   else if (argv.version) {
-    console.log(require('../package').version);
+    console.log(require('../package').version)
   }
   else {
-    start(parseInt(argv.port, 10), argv.hostname);
+    start(parseInt(argv.port, 10), argv.hostname)
   }
 }
 
 if (require.main === module) {
-  main();
+  main()
 }

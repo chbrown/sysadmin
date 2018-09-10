@@ -1,5 +1,5 @@
-import {createReadStream} from 'fs';
-import {join} from 'path';
+import {createReadStream} from 'fs'
+import {join} from 'path'
 
 const api = {
   /**
@@ -8,9 +8,9 @@ const api = {
   TODO: safeguard against malicious requests.
   */
   readFile({path}: {path: string}) {
-    const filepath = join(__dirname, path);
-    // console.info(`api.readFile:createReadStream(${filepath})`);
-    return createReadStream(filepath);
+    const filepath = join(__dirname, path)
+    // console.info(`api.readFile:createReadStream(${filepath})`)
+    return createReadStream(filepath)
   },
-};
-export default api;
+}
+export default api

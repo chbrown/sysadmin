@@ -1,24 +1,24 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import {Relation, RelationAttribute} from 'pg-meta/types';
+import * as React from 'react'
+import * as PropTypes from 'prop-types'
+import {Relation, RelationAttribute} from 'pg-meta/types'
 
-import {bind} from '../../util';
-import {connectCookies, ConnectedCookiesProps, CookiesPropTypes} from '../../cookies';
+import {bind} from '../../util'
+import {connectCookies, ConnectedCookiesProps, CookiesPropTypes} from '../../cookies'
 
-import StoredCheckbox from '../../components/StoredCheckbox';
+import StoredCheckbox from '../../components/StoredCheckbox'
 
-import Table from './Table';
+import Table from './Table'
 
 interface DatabaseProps extends ConnectedCookiesProps {
-  relations: Relation[];
+  relations: Relation[]
 }
 class Database extends React.Component<DatabaseProps> {
   render() {
-    const {relations, cookies} = this.props;
-    const relkinds = new Set(relations.map(({relkind}) => relkind));
+    const {relations, cookies} = this.props
+    const relkinds = new Set(relations.map(({relkind}) => relkind))
     const enabledRelkinds = new Set([...relkinds].filter(relkind => {
-      return cookies[relkind] !== 'false';
-    }));
+      return cookies[relkind] !== 'false'
+    }))
     return (
       <div className="database">
         <nav className="left">
@@ -39,13 +39,13 @@ class Database extends React.Component<DatabaseProps> {
           )}
         </main>
       </div>
-    );
+    )
   }
   static propTypes: React.ValidationMap<DatabaseProps> = {
     relations: PropTypes.array.isRequired,
     cookies: CookiesPropTypes,
-  };
+  }
 }
-const ConnectedDatabase = connectCookies<DatabaseProps>()(Database);
+const ConnectedDatabase = connectCookies<DatabaseProps>()(Database)
 
-export default ConnectedDatabase;
+export default ConnectedDatabase

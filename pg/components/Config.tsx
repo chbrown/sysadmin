@@ -1,17 +1,17 @@
-import * as React from 'react';
+import * as React from 'react'
 
-import {bind} from '../../util';
-import {connectCookies, ConnectedCookiesProps, CookiesPropTypes} from '../../cookies';
+import {bind} from '../../util'
+import {connectCookies, ConnectedCookiesProps, CookiesPropTypes} from '../../cookies'
 
-import StoredCheckbox from '../../components/StoredCheckbox';
-import StoredText from '../../components/StoredText';
+import StoredCheckbox from '../../components/StoredCheckbox'
+import StoredText from '../../components/StoredText'
 
-const relkinds = ['ordinary table', 'sequence', 'index', 'view'];
+const relkinds = ['ordinary table', 'sequence', 'index', 'view']
 
 interface ConfigProps extends ConnectedCookiesProps {}
 class Config extends React.Component<ConfigProps> {
   render() {
-    const {cookies} = this.props;
+    const {cookies} = this.props
     return (
       <div>
         <div className="hpad flex">
@@ -36,13 +36,13 @@ class Config extends React.Component<ConfigProps> {
           </div>
         </div>
       </div>
-    );
+    )
   }
   static propTypes: React.ValidationMap<ConfigProps> = {
     cookies: CookiesPropTypes,
-  };
+  }
 }
 
-const ConnectedConfig = connectCookies<ConfigProps>()(Config);
+const ConnectedConfig = connectCookies<ConfigProps>()(Config)
 
-export default ConnectedConfig;
+export default ConnectedConfig
